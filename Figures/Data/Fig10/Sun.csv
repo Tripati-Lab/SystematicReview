@@ -1,0 +1,7 @@
+﻿Sample Type,Age,Location,Elevation(m),Δ47,D47Error,Calibration,Temperature,Error
+Fossil aragonite shells,6.2,"Shuitangba, Zhaotong, Yunnan",1918,0.706,0.023,Tripati et al. (2015),17.6,5.4
+Modern aragonite shells,0,"Fuxian Lake, Yunnan",1722,0.708,0.019,Tripati et al. (2015),17.1,4.5
+Fossil aragonite shells,6.2,"Shuitangba, Zhaotong, Yunnan",1918,0.706,0.023,Henkes et al. (2013),21.4,8.5
+Modern aragonite shells,0,"Fuxian Lake, Yunnan",1722,0.708,0.019,Henkes et al. (2013),20.6,7.3
+Fossil aragonite shells,6.2,"Shuitangba, Zhaotong, Yunnan",1918,0.706,0.023,Petersen et al. (2019),22.7,7.6
+Modern aragonite shells,0,"Fuxian Lake, Yunnan",1722,0.708,0.019,Petersen et al. (2019),26.9,4.4
