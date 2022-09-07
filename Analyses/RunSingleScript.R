@@ -1,4 +1,3 @@
-
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Predictions_Bayesian.R")
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Predictions_nonBayesian.R")
