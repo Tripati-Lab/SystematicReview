@@ -88,14 +88,11 @@ infTempBayesian <- BayesianPredictions(calibrationData = calData,
                                        samples=NULL,
                                        init.values = FALSE, 
                                        D47Pred = recData$D47,
-                                       materialsPred = as.numeric(as.factor(ifelse(is.na(recData$Material), 1,recData$Material)))
+                                       materialsPred = as.numeric(as.factor(ifelse(is.na(recData$Material), 1,recData$Material))),
+                                       D47PredErr = recData$D47error
 )
             
 BayesianRecs <- rbindlist(lapply(infTempBayesian, as.data.frame), idcol = 'Model', fill = TRUE)
-
-##Reconstructions
-
-
 
 
 RecComplete <- rbindlist(list("OLS"=lmrecClassic,
@@ -107,7 +104,7 @@ RecComplete <- rbindlist(list("OLS"=lmrecClassic,
 
 
 colnames(BayesianRecs)[2] <- "D47"
-colnames(RecComplete)[5] <- "sd"
+colnames(RecComplete)[c(5,3)] <- c("sd","D47PredErr")
 
 RecComplete <- rbindlist(list(BayesianRecs, RecComplete), fill = TRUE)
 
