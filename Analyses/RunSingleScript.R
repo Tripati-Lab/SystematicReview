@@ -4,33 +4,38 @@ source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Pre
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Predictions_nonBayesian.R")
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
 
+library(here)
+
 replicates = 100
 samples = NULL
-ngenerationsBayes = 5000
+ngenerationsBayes = 10000
 multicore = FALSE
-priors="Informative"
+priors = "Difusse"
+name = "S3"
+init.values = FALSE
 
-RunSingleFullResults <- function(name="S1",
+RunSingleFullResults <- function(name="S3",
                                  replicates, 
                                  samples, 
                                  ngenerationsBayes, 
                                  priors){
 
-calData <- read.csv(paste0("Datasets/Dataset_",name, ".csv"))
-recData <-read.csv("Datasets/BayClump_reconstruction_template.csv") 
+calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
+recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template.csv")) 
 
 
-multicore=FALSE
+multicore = FALSE
 
 calData$T2 <- calData$Temperature
 lmcals <- simulateLM_measured(calData, replicates = replicates, samples = samples)
 lminversecals <- simulateLM_inverseweights(calData, replicates = replicates, samples = samples)
 yorkcals <- simulateYork_measured(calData, replicates = replicates, samples = samples)
 demingcals <- simulateDeming(calData, replicates = replicates, samples = samples, multicore=multicore)
-bayeslincals <- fitClumpedRegressions(calibrationData=calData, 
+bayeslincals <- fitClumpedRegressions(calibrationData = calData, 
                                                  priors = priors,
                                                  n.iter = ngenerationsBayes,
                                                  samples = samples)
+
 nonBayesianParamsComplete <- rbindlist(list("OLS"=lmcals,
      "WOLS"=lminversecals,
      "York"=yorkcals,
