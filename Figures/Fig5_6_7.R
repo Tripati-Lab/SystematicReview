@@ -20,7 +20,7 @@ completePreds$within95 <- data.table::between(completePreds$True.Temp, completeP
                                               completePreds$Tc + 1.96*completePreds$se)
 completePreds$Bayesian <- grepl("BLM", completePreds$Model)
   
-#write.csv(completePreds, 'Complete.predictions.csv')
+write.csv(completePreds, here("Analyses", "Results", 'Complete.predictions.csv'))
 
 dist=0.5
 
