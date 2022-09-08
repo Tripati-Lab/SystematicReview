@@ -1,17 +1,16 @@
 library(rio)
 library(data.table)
 library(ggplot2)
+library(here)
 
-dirList <- list.dirs()[grep("Fig5", list.dirs())]
-target <- dirList[1]
-TargetOutputFiles<-list.files(target,  full.names = T)
+ds <- here("Analyses", "Results", "50_Obs")
+TargetOutputFiles <-list.files(ds, pattern = "Informative_Recs", full.names = T)
 
 S1 <- read.csv(TargetOutputFiles[[1]])
 S2 <- read.csv(TargetOutputFiles[[2]])
 S3 <- read.csv(TargetOutputFiles[[3]])
 
 completePreds <- rbindlist(list(S1=S1, S2=S2, S3=S3), idcol = "Dataset")
-completePreds <- completePreds[completePreds$Type != "BayClump",]
 
 completePreds$True.Temp <- sqrt((0.0369 * 10 ^ 6) / (completePreds$D47 - 0.268)) - 273.15
 completePreds$distance <- (completePreds$Tc - completePreds$True.Temp)
@@ -36,8 +35,8 @@ completePreds2$Model <- factor(completePreds2$Model,
 )
 
 
-completePreds2$D47se <- factor(completePreds2$D47se, levels = unique(completePreds2$D47se),
-                   labels = c('Error in target D47 = 0.006‰', "0.01‰", "0.02‰"))
+completePreds2$D47se <- factor(completePreds2$D47PredErr, levels = unique(completePreds2$D47PredErr),
+                   labels = c('Error in target D47 = 0.005‰', "0.01‰", "0.02‰"))
 
 completePreds2$Dataset <- factor(completePreds2$Dataset, levels = unique(completePreds2$Dataset), labels = c("Low-error",
                                                                             "Intermediate-error",
@@ -52,8 +51,8 @@ tdata <- completePreds2[completePreds2$D47 == 0.8,]
 tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
 p1 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
   geom_point(position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=Tc-se*1.96, 
-                    ymax=Tc+se*1.96), 
+  geom_errorbar(aes(ymin=Tc-sd*1.96, 
+                    ymax=Tc+sd*1.96), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)) +
   geom_hline(aes(yintercept=True.Temp), lty='dashed', color='black')+
@@ -84,8 +83,8 @@ tdata <- completePreds2[completePreds2$D47 == 0.7,]
 tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
 p2 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
   geom_point(position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=Tc-se*1.96, 
-                    ymax=Tc+se*1.96), 
+  geom_errorbar(aes(ymin=Tc-sd*1.96, 
+                    ymax=Tc+sd*1.96), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)) +
   geom_hline(aes(yintercept=True.Temp), lty='dashed', color='black')+
@@ -117,8 +116,8 @@ tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
 
 p3 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
   geom_point(position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=Tc-se*1.96, 
-                    ymax=Tc+se*1.96), 
+  geom_errorbar(aes(ymin=Tc-sd*1.96, 
+                    ymax=Tc+sd*1.96), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)) +
   geom_hline(aes(yintercept=True.Temp), lty='dashed', color='black')+
@@ -146,27 +145,27 @@ p3 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
   )
 
 
-pdf('Plots/Fig5.pdf',10,8)
+pdf(here("Figures","Plots","Fig5.pdf"),10,8)
 print(p1)
 dev.off()
 
-jpeg("Plots/Fig5.jpg", 10, 8, units = "in", res=300)
+jpeg(here("Figures","Plots","Fig5.jpg"), 10, 8, units = "in", res=300)
 print(p1)
 dev.off()
 
-pdf('Plots/Fig6.pdf',10,8)
+pdf(here("Figures","Plots","Fig6.pdf"),10,8)
 print(p2)
 dev.off()
 
-jpeg("Plots/Fig6.jpg", 10, 8, units = "in", res=300)
+jpeg(here("Figures","Plots","Fig6.jpg"), 10, 8, units = "in", res=300)
 print(p2)
 dev.off()
 
-pdf('Plots/Fig7.pdf',10,8)
+pdf(here("Figures","Plots","Fig7.pdf"),10,8)
 print(p3)
 dev.off()
 
-jpeg("Plots/Fig7.jpg", 10, 8, units = "in", res=300)
+jpeg(here("Figures","Plots","Fig7.jpg"), 10, 8, units = "in", res=300)
 print(p3)
 dev.off()
 

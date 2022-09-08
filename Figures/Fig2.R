@@ -1,4 +1,4 @@
-setwd("~/MEGA/Projects/2_BayClump_reviews/May2022/Figures")
+library(here)
 library(rio)
 library(data.table)
 library(ggplot2)
@@ -11,14 +11,10 @@ ggthemr('light')
 
 beta <- 0.0369
 alpha <- 0.268
-dirList <- list.dirs()[grep("Fig2", list.dirs())]
 
-nobsRepDataset <- do.call(rbind, lapply(seq_along(dirList), function(x){
-  
-  target <- dirList[x]
-  TargetOutputFiles<-list.files(target,full.names = T)
-  
-  datasets <- lapply(TargetOutputFiles, read.csv)
+ds <- here("Analyses", "Results", "50_Obs")
+TargetOutputFiles<-list.files(ds, pattern = "Informative_ParamsFull", full.names = T)
+datasets <- lapply(TargetOutputFiles, read.csv)
   
   full <- rbind.data.frame(
     cbind.data.frame(Dataset='S1', datasets[[1]]),
@@ -26,9 +22,7 @@ nobsRepDataset <- do.call(rbind, lapply(seq_along(dirList), function(x){
     cbind.data.frame(Dataset='S3', datasets[[2]])
   )
   
-  full
-  
-}))
+nobsRepDataset <-  full
 
 ## Patterns for regression lines and CI
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/main/Functions/Calibration_BayesianNonBayesian.R")
@@ -66,6 +60,9 @@ CIs$dataset <- factor(CIs$dataset, levels = unique(CIs$dataset), labels = c("Low
                                                                             "Intermediate-error",
                                                                             "High-error"))
 
+alpha = 0.268
+beta = 0.0369
+
 p1 <- ggplot(CIs, aes(x=x, y=median_est)) + 
   #geom_line(aes(y = D47_ci_lower_est)) + 
   #geom_line(aes(y = D47_ci_upper_est)) + 
@@ -95,11 +92,11 @@ p1 <- ggplot(CIs, aes(x=x, y=median_est)) +
         axis.line.y.left=element_line(color="black", size=0.1))
 
 
-pdf("Plots/Fig2.pdf", 10, 14)
+pdf(here("Figures","Plots","Fig2.pdf"), 10, 14)
 print(p1)
 dev.off()
 
-jpeg("Plots/Fig2.jpg", 10, 14, units = "in", res=300)
+jpeg(here("Figures","Plots","Fig2.pdf"), 10, 14, units = "in", res=300)
 print(p1)
 dev.off()
 

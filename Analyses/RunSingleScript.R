@@ -5,6 +5,7 @@ source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
 
 library(here)
 
+
 replicates = 100
 samples = NULL
 ngenerationsBayes = 10000
@@ -143,48 +144,48 @@ c <-RunSingleFullResults(name="S3",
                      ngenerationsBayes=50000, 
                      priors='Informative')
 
-###Difuse
+###Weak
 
 a1 <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=50, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 b1 <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=50, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 
 c1 <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=50, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 
-###NonInformative
+###Uninformative
 
 RunSingleFullResults(name="S1",
                           replicates=1000, 
                           samples=50, 
                           ngenerationsBayes=50000, 
-                          priors='NonInformative')
+                          priors='Uninformative')
 
 RunSingleFullResults(name="S2",
                           replicates=1000, 
                           samples=50, 
                           ngenerationsBayes=50000, 
-                          priors='NonInformative')
+                          priors='Uninformative')
 
 
 RunSingleFullResults(name="S3",
                           replicates=1000, 
                           samples=50, 
                           ngenerationsBayes=50000, 
-                          priors='NonInformative')
+                          priors='Uninformative')
 
 
 
@@ -210,47 +211,47 @@ f <-RunSingleFullResults(name="S3",
                      priors='Informative')
 
 
-###Difuse
+###Weak
 d1 <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples= 500, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 e1 <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples= 500, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 
 f1 <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples= 500, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 
-###NonInformative
+###Uninformative
 
 RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=500, 
                      ngenerationsBayes=50000, 
-                     priors='NonInformative')
+                     priors='Uninformative')
 
 RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=500, 
                      ngenerationsBayes=50000, 
-                     priors='NonInformative')
+                     priors='Uninformative')
 
 
 RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=500, 
                      ngenerationsBayes=50000, 
-                     priors='NonInformative')
+                     priors='Uninformative')
 
 
 
@@ -276,46 +277,46 @@ i <-RunSingleFullResults(name="S3",
                      priors='Informative')
 
 
-###Difuse
+###Weak
 g1 <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples= 10, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 h1 <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples= 10, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
 
 i1 <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples= 10, 
                      ngenerationsBayes=50000, 
-                     priors='Difuse')
+                     priors='Weak')
 
-###NonInformative
+###Uninformative
 
 RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=10, 
                      ngenerationsBayes=50000, 
-                     priors='NonInformative')
+                     priors='Uninformative')
 
 RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=10, 
                      ngenerationsBayes=50000, 
-                     priors='NonInformative')
+                     priors='Uninformative')
 
 
 RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=10, 
                      ngenerationsBayes=50000, 
-                     priors='NonInformative')
+                     priors='Uninformative')
 
 
 

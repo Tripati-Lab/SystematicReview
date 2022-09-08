@@ -1,4 +1,3 @@
-setwd("~/MEGA/Projects/2_BayClump_reviews/May2022/Figures")
 library(rio)
 library(data.table)
 library(ggplot2)
@@ -6,29 +5,29 @@ library(ggpubr)
 library(lemon)
 library(ggthemr)
 library(dplyr)
+library(here)
 
 ggthemr('light')
 
 beta <- 0.0369
 alpha <- 0.268
-dirList <- list.dirs()[grep("Fig4", list.dirs())]
 
-nobsRepDataset <- do.call(rbind, lapply(seq_along(dirList), function(x){
+ds <- here("Analyses", "Results", "10_Obs")
+Info10 <-list.files(ds, pattern = "Informative_ParamsFull", full.names = T)[1]
+ds <- here("Analyses", "Results", "50_Obs")
+Info50 <-list.files(ds, pattern = "Informative_ParamsFull", full.names = T)[1]
+ds <- here("Analyses", "Results", "500_Obs")
+Info500 <-list.files(ds, pattern = "Informative_ParamsFull", full.names = T)[1]
 
-target <- dirList[x]
-TargetOutputFiles<-list.files(target,full.names = T)
-
+TargetOutputFiles <- c(Info10, Info50, Info500)
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(
 cbind.data.frame(nobs=10, datasets[[1]]),
-cbind.data.frame(nobs=50, datasets[[3]]),
-cbind.data.frame(nobs=500, datasets[[2]])
+cbind.data.frame(nobs=50, datasets[[2]]),
+cbind.data.frame(nobs=500, datasets[[3]])
 )
-
-full
-
-}))
+nobsRepDataset <- full
 
 ## Patterns for regression lines and CI
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/main/Functions/Calibration_BayesianNonBayesian.R")
@@ -95,11 +94,11 @@ p1 <- ggplot(CIs, aes(x=x, y=median_est)) +
         axis.line.y.left=element_line(color="black", size=0.1))
 
 
-pdf("Plots/Fig4.pdf", 10, 14)
+pdf(here("Figures","Plots","Fig4.pdf"), 10, 14)
 print(p1)
 dev.off()
 
-jpeg("Plots/Fig4.jpg", 10, 14, units = "in", res=300)
+jpeg(here("Figures","Plots","Fig4.jpg"), 10, 14, units = "in", res=300)
 print(p1)
 dev.off()
 
