@@ -10,8 +10,8 @@ replicates = 100
 samples = NULL
 ngenerationsBayes = 10000
 multicore = FALSE
-priors = "Difusse"
-name = "S3"
+priors = "Weak"
+name = "S1"
 init.values = FALSE
 
 RunSingleFullResults <- function(name="S3",
@@ -54,31 +54,31 @@ ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), se 
               
 
 lmrecClassic <-  do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(calData, targety=recData$D47[x],obCal=lmcals)
-                b <- predictTc(calData, targety=recData$D47[x]+recData$D47error[x], obCal=lmcals)
+                a <- predictTc(targety=recData$D47[x],obCal=lmcals)
+                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=lmcals)
                 cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
               } ))
               
             
 
 lminverserecClassic  <-  do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(calData, targety=recData$D47[x], obCal=lminversecals)
-                b <- predictTc(calData, targety=recData$D47[x]+recData$D47error[x], obCal=lminversecals)
+                a <- predictTc(targety=recData$D47[x], obCal=lminversecals)
+                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=lminversecals)
                 cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
               } ))
             
 
 yorkrecClassic  <-   do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(calData, targety=recData$D47[x], obCal=yorkcals)
-                b <- predictTc(calData, targety=recData$D47[x]+recData$D47error[x], obCal=yorkcals)
+                a <- predictTc(targety=recData$D47[x], obCal=yorkcals)
+                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=yorkcals)
                 cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
               } ))
               
 
 
 demingrecClassic <- do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(calData, targety=recData$D47[x], obCal=demingcals)
-                b <- predictTc(calData, targety=recData$D47[x]+recData$D47error[x], obCal=demingcals)
+                a <- predictTc(targety=recData$D47[x], obCal=demingcals)
+                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=demingcals)
                 cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
               }))
             
@@ -89,12 +89,11 @@ infTempBayesian <- BayesianPredictions(calibrationData = calData,
                                        samples=NULL,
                                        init.values = FALSE, 
                                        D47Pred = recData$D47,
-                                       materialsPred = as.numeric(as.factor(ifelse(is.na(recData$Material), 1,recData$Material))),
-                                       D47PredErr = recData$D47error
+                                       D47PredErr = recData$D47error,
+                                       materialsPred = as.numeric(as.factor(ifelse(is.na(recData$Material), 1,recData$Material)))
 )
             
 BayesianRecs <- rbindlist(lapply(infTempBayesian, as.data.frame), idcol = 'Model', fill = TRUE)
-
 
 RecComplete <- rbindlist(list("OLS"=lmrecClassic,
                               "York"=yorkrecClassic,
@@ -104,7 +103,8 @@ RecComplete <- rbindlist(list("OLS"=lmrecClassic,
                          idcol = "Model", fill = TRUE)
 
 
-colnames(BayesianRecs)[2] <- "D47"
+colnames(BayesianRecs)[3] <- "D47"
+
 colnames(RecComplete)[c(5,3)] <- c("sd","D47PredErr")
 
 RecComplete <- rbindlist(list(BayesianRecs, RecComplete), fill = TRUE)
