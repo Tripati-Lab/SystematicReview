@@ -89,29 +89,9 @@ model {
 }
 "
 
-matVector <- sample(c(1, 2), nrow(calData), replace = TRUE )
-
-stan_data_mixed <- list(N = nrow(calData), 
-                     x = calData$Temperature,
-                     y = calData$D47, 
-                     J = length(unique(matVector)),
-                     Material = matVector,
-                     beta_mu =  0.039,
-                     beta_sd = 0.004,
-                     alpha_mu = 0.231,
-                     alpha_sd = 0.065)
-
-BLM3 <- stan(data = stan_data_mixed, model_code = fwMod_mixed, 
-                chains = 2, iter = nIter, warmup = burnInSteps,
-                thin = thinSteps, pars = c('alpha', 'beta'))
-
-
-
 
 ##Fitting models
-
 library(rstan)
-
 nChains = 2
 burnInSteps = 1000
 thinSteps = 1
@@ -148,25 +128,45 @@ BLM1_E <- stan(data = stan_data_Err, model_code = fwMod_Errors,
                        thin = thinSteps, pars = c('alpha', 'beta'))
 
 
+
+matVector <- sample(c(1, 2), nrow(calData), replace = TRUE ) #Playing with multiple mats
+
+stan_data_mixed <- list(N = nrow(calData), 
+                        x = calData$Temperature,
+                        y = calData$D47, 
+                        J = length(unique(matVector)),
+                        Material = matVector,
+                        beta_mu =  0.039,
+                        beta_sd = 0.004,
+                        alpha_mu = 0.231,
+                        alpha_sd = 0.065)
+
+BLM3 <- stan(data = stan_data_mixed, model_code = fwMod_mixed, 
+             chains = 2, iter = nIter, warmup = burnInSteps,
+             thin = thinSteps, pars = c('alpha', 'beta'))
+
+
+
 vects.NE <- extract(BLM1_NE)
 vects.E <- extract(BLM1_E)
+vects.M3 <- extract(BLM3)
 
 
 ##Reconstruction
 predMod = "
  data {
-    int<lower=0> N; // number of data items
-    int<lower=0> M; // number of posterior samples
-    vector[N] y; // predictor
-    vector[M] beta; // beta
-    vector[M] alpha; // alpha
-    vector[M] sigma; // sigma
+    int<lower=0> N;
+    int<lower=0> M; 
+    vector[N] y;
+    vector[M] beta;
+    vector[M] alpha;
+    vector[M] sigma;
     vector[N] prior_mu;
     real prior_sig;
  }
 
 parameters {
-    matrix<lower=0>[N,M] x; // temperature to estimate
+    matrix<lower=0>[N,M] x;
 }
 
 transformed parameters {
@@ -192,7 +192,7 @@ stan_date <- list(N = length(targetD47),
                   alpha = vects.NE$alpha,
                   sigma = vects.NE$sigma,
                   prior_mu = rep(11, length(targetD47)),
-                  prior_sig = 5)
+                  prior_sig = sd(calData$Temperature))
 
 data.rstan <- stan(data = stan_date, model_code = predMod, 
                         chains = 2, iter = 1000, warmup = 500,
@@ -210,9 +210,10 @@ cbind.data.frame(targetD47 = targetD47[x],
                  sd = sd(tT[,which(index == x)]))
 }))
 
+rnorm(2, mean = c(0.6), 0.005)
 
-
-
+## Compare models
+#https://cran.r-project.org/web/packages/loo/vignettes/loo2-with-rstan.html
 
 
 
