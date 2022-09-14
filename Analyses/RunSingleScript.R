@@ -53,35 +53,70 @@ ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), se 
 #calData$TcE <- abs((sqrt(10^6/(calData$T2))-273.15) - (sqrt(10^6/(calData$T2+abs(calData$TempError)))-273.15))
               
 
-lmrecClassic <-  do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(targety=recData$D47[x],obCal=lmcals)
-                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=lmcals)
-                cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
-              } ))
-              
-            
-
-lminverserecClassic  <-  do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(targety=recData$D47[x], obCal=lminversecals)
-                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=lminversecals)
-                cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
-              } ))
-            
-
-yorkrecClassic  <-   do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(targety=recData$D47[x], obCal=yorkcals)
-                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=yorkcals)
-                cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
-              } ))
-              
+lmrecClassic <-  predictTc(calData = calData, 
+                           targety = recData$D47, 
+                           targetyError = recData$D47error, 
+                           nObs = recData$N, 
+                           obCal = lmcals,
+                           IgnoreParamUncertainty = TRUE)
+  
+lmrecUncertainty <-  predictTc(calData = calData, 
+                           targety = recData$D47, 
+                           targetyError = recData$D47error, 
+                           nObs = recData$N, 
+                           obCal = lmcals,
+                           IgnoreParamUncertainty = FALSE)
 
 
-demingrecClassic <- do.call(rbind,lapply(1:nrow(recData), function(x){
-                a <- predictTc(targety=recData$D47[x], obCal=demingcals)
-                b <- predictTc(targety=recData$D47[x]+recData$D47error[x], obCal=demingcals)
-                cbind.data.frame("D47"=recData$D47[x],"D47se"=recData$D47error[x], "Tc"=a$temp, "se"=a$temp-b$temp)
-              }))
-            
+
+
+lminverserecClassic <-  predictTc(calData = calData, 
+                           targety = recData$D47, 
+                           targetyError = recData$D47error, 
+                           nObs = recData$N, 
+                           obCal = lminversecals,
+                           IgnoreParamUncertainty = TRUE)
+
+lminverserecUncertainty <-  predictTc(calData = calData, 
+                               targety = recData$D47, 
+                               targetyError = recData$D47error, 
+                               nObs = recData$N, 
+                               obCal = lminversecals,
+                               IgnoreParamUncertainty = FALSE)
+
+
+
+yorkrecClassic <-  predictTc(calData = calData, 
+                                  targety = recData$D47, 
+                                  targetyError = recData$D47error, 
+                                  nObs = recData$N, 
+                                  obCal = yorkcals ,
+                                  IgnoreParamUncertainty = TRUE)
+
+yorkrecUncertainty <-  predictTc(calData = calData, 
+                                      targety = recData$D47, 
+                                      targetyError = recData$D47error, 
+                                      nObs = recData$N, 
+                                      obCal = yorkcals,
+                                      IgnoreParamUncertainty = FALSE)
+
+
+
+demingrecClassic <-  predictTc(calData = calData, 
+                             targety = recData$D47, 
+                             targetyError = recData$D47error, 
+                             nObs = recData$N, 
+                             obCal = demingcals ,
+                             IgnoreParamUncertainty = TRUE)
+
+demingrecUncertainty <-  predictTc(calData = calData, 
+                                 targety = recData$D47, 
+                                 targetyError = recData$D47error, 
+                                 nObs = recData$N, 
+                                 obCal = demingcals ,
+                                 IgnoreParamUncertainty = FALSE)
+
+
 
 infTempBayesian <- BayesianPredictions(calibrationData = calData, 
                                        n.iter = ngenerationsBayes, 
