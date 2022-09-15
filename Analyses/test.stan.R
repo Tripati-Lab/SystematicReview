@@ -125,7 +125,7 @@ stan_data_Err <- list(N = nrow(calData),
 
 BLM1_E <- stan(data = stan_data_Err, model_code = fwMod_Errors, 
                        chains = 2, iter = nIter, warmup = burnInSteps,
-                       thin = thinSteps, pars = c('alpha', 'beta'))
+                       thin = thinSteps, pars = c('alpha', 'beta', 'sigma'))
 
 
 
@@ -143,13 +143,14 @@ stan_data_mixed <- list(N = nrow(calData),
 
 BLM3 <- stan(data = stan_data_mixed, model_code = fwMod_mixed, 
              chains = 2, iter = nIter, warmup = burnInSteps,
-             thin = thinSteps, pars = c('alpha', 'beta'))
+             thin = thinSteps, pars = c('alpha', 'beta', 'sigma'))
 
 
 
 vects.NE <- extract(BLM1_NE)
 vects.E <- extract(BLM1_E)
 vects.M3 <- extract(BLM3)
+
 
 
 ##Reconstruction

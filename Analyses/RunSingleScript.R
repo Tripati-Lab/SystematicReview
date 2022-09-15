@@ -4,11 +4,11 @@ source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Pre
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
 
 library(here)
-
+library(rstan)
 
 replicates = 100
 samples = NULL
-ngenerationsBayes = 10000
+ngenerationsBayes = 3000
 multicore = FALSE
 priors = "Weak"
 name = "S1"
@@ -21,28 +21,25 @@ RunSingleFullResults <- function(name="S3",
                                  priors){
 
 calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
-recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template.csv")) 
+recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template_replicates.csv")) 
 
-
-multicore = FALSE
-
-calData$T2 <- calData$Temperature
 lmcals <- simulateLM_measured(calData, replicates = replicates, samples = samples)
 lminversecals <- simulateLM_inverseweights(calData, replicates = replicates, samples = samples)
 yorkcals <- simulateYork_measured(calData, replicates = replicates, samples = samples)
-demingcals <- simulateDeming(calData, replicates = replicates, samples = samples, multicore=multicore)
+demingcals <- simulateDeming(calData, replicates = replicates, samples = samples)
 bayeslincals <- fitClumpedRegressions(calibrationData = calData, 
-                                                 priors = priors,
-                                                 n.iter = ngenerationsBayes,
-                                                 samples = samples)
+                                      priors = priors,
+                                      numSavedSteps = ngenerationsBayes,
+                                      samples = samples)
 
-nonBayesianParamsComplete <- rbindlist(list("OLS"=lmcals,
-     "WOLS"=lminversecals,
-     "York"=yorkcals,
-     "Deming"=demingcals), idcol = "Model")       
+nonBayesianParamsComplete <- rbindlist(list("OLS" = lmcals,
+                                            "WOLS" = lminversecals,
+                                            "York" = yorkcals,
+                                            "Deming" = demingcals),
+                                       idcol = "Model")       
        
-BayesianPosteriors <- rbindlist(list("BLM1_fit"=do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM1_fit)),
-                                     "BLM1_fit_NoErrors"=do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM1_fit_NoErrors)),
+BayesianPosteriors <- rbindlist(list("BLM1_fit" = do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM1_fit)),
+                                     "BLM1_fit_NoErrors" = do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM1_fit_NoErrors)),
                                      "BLM3_fit"=do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM3_fit))), idcol = "Model", fill = T)  
 
 Params <- rbind.data.frame(nonBayesianParamsComplete, BayesianPosteriors[,1:3])
@@ -53,87 +50,73 @@ ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), se 
 #calData$TcE <- abs((sqrt(10^6/(calData$T2))-273.15) - (sqrt(10^6/(calData$T2+abs(calData$TempError)))-273.15))
               
 
-lmrecClassic <-  predictTc(calData = calData, 
-                           targety = recData$D47, 
-                           targetyError = recData$D47error, 
-                           nObs = recData$N, 
+lmrecClassic <-  predictTc(calData = calData,
+                           recData = recData,
                            obCal = lmcals,
                            IgnoreParamUncertainty = TRUE)
   
-lmrecUncertainty <-  predictTc(calData = calData, 
-                           targety = recData$D47, 
-                           targetyError = recData$D47error, 
-                           nObs = recData$N, 
-                           obCal = lmcals,
-                           IgnoreParamUncertainty = FALSE)
-
-
-
-
-lminverserecClassic <-  predictTc(calData = calData, 
-                           targety = recData$D47, 
-                           targetyError = recData$D47error, 
-                           nObs = recData$N, 
-                           obCal = lminversecals,
-                           IgnoreParamUncertainty = TRUE)
-
-lminverserecUncertainty <-  predictTc(calData = calData, 
-                               targety = recData$D47, 
-                               targetyError = recData$D47error, 
-                               nObs = recData$N, 
-                               obCal = lminversecals,
+lmrecUncertainty <-  predictTc(calData = calData,
+                               recData = recData,
+                               obCal = lmcals,
                                IgnoreParamUncertainty = FALSE)
 
 
 
-yorkrecClassic <-  predictTc(calData = calData, 
-                                  targety = recData$D47, 
-                                  targetyError = recData$D47error, 
-                                  nObs = recData$N, 
-                                  obCal = yorkcals ,
+
+lminverserecClassic <-  predictTc(calData = calData,
+                                  recData = recData,
+                                  obCal = lminversecals,
                                   IgnoreParamUncertainty = TRUE)
 
-yorkrecUncertainty <-  predictTc(calData = calData, 
-                                      targety = recData$D47, 
-                                      targetyError = recData$D47error, 
-                                      nObs = recData$N, 
-                                      obCal = yorkcals,
+lminverserecUncertainty <-  predictTc(calData = calData,
+                                      recData = recData,
+                                      obCal = lminversecals,
                                       IgnoreParamUncertainty = FALSE)
 
 
 
-demingrecClassic <-  predictTc(calData = calData, 
-                             targety = recData$D47, 
-                             targetyError = recData$D47error, 
-                             nObs = recData$N, 
-                             obCal = demingcals ,
+yorkrecClassic <-  predictTc(calData = calData,
+                             recData = recData,
+                             obCal = yorkcals ,
                              IgnoreParamUncertainty = TRUE)
 
-demingrecUncertainty <-  predictTc(calData = calData, 
-                                 targety = recData$D47, 
-                                 targetyError = recData$D47error, 
-                                 nObs = recData$N, 
-                                 obCal = demingcals ,
+yorkrecUncertainty <-  predictTc(calData = calData,
+                                 recData = recData,
+                                 obCal = yorkcals,
                                  IgnoreParamUncertainty = FALSE)
 
+demingrecClassic <-  predictTc(calData = calData,
+                               recData = recData,
+                               obCal = demingcals ,
+                               IgnoreParamUncertainty = TRUE)
+
+demingrecUncertainty <-  predictTc(calData = calData,
+                                   recData = recData,
+                                   obCal = demingcals ,
+                                   IgnoreParamUncertainty = FALSE)
+
+infTempBayesianBLM1 <- BayesianPredictions(calModel = bayeslincals$BLM1_fit,
+                    calData = calData,
+                    recData = recData,
+                    iter = 500,
+                    warmup = 100)
+
+infTempBayesianBLM1_fit_NoErrors <- BayesianPredictions(calModel = bayeslincals$BLM1_fit_NoErrors,
+                                       calData = calData,
+                                       recData = recData,
+                                       iter = 500,
+                                       warmup = 100)
 
 
-infTempBayesian <- BayesianPredictions(calibrationData = calData, 
-                                       n.iter = ngenerationsBayes, 
-                                       priors = priors,
-                                       samples=NULL,
-                                       init.values = FALSE, 
-                                       D47Pred = recData$D47,
-                                       D47PredErr = recData$D47error,
-                                       materialsPred = as.numeric(as.factor(ifelse(is.na(recData$Material), 1,recData$Material)))
-)
+
             
-BayesianRecs <- rbindlist(lapply(infTempBayesian, as.data.frame), idcol = 'Model', fill = TRUE)
 
 RecComplete <- rbindlist(list("OLS"=lmrecClassic,
                               "York"=yorkrecClassic,
                               "Deming"=demingrecClassic,
-                              "WOLS"=lminverserecClassic
+                              "WOLS"=lminverserecClassic,
+                              "BayesianBLM1" = infTempBayesianBLM1,
+                              "BayesianBLM1_NoErrors" =infTempBayesianBLM1
                               ),
                          idcol = "Model", fill = TRUE)
 
