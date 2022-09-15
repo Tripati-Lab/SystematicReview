@@ -28,16 +28,16 @@ predictTc <<- function(calData,
   Tval   <- qt(Cqts, df = (nrow(calData)-2)) 
   Yhat   <-  mean(obCal$alpha) + calData$Temperature*mean(obCal$beta) 
   ysd    <- sd(calData$D47 - Yhat)
-  Xe1    <- (ysd * Tval) / mean(obCal$alpha)
-  Xe1L   <- sqrt(10^6/X_new_hat + Xe1[1]) - 273.15
-  Xe1U   <- sqrt(10^6/X_new_hat + Xe1[2]) - 273.15 
+  Xe1    <- (ysd * Tval) / mean(obCal$beta)
+  Xe1L   <- sqrt(10^6/ (X_new_hat + Xe1[1])) - 273.15
+  Xe1U   <- sqrt(10^6/(X_new_hat + Xe1[2])) - 273.15 
 
   cbind.data.frame(Sample = recData$Sample, 
                    D47 = recData$D47, 
                    D47error = recData$D47error, 
                    meanTemp = sqrt(10^6/X_new_hat)-273.15, 
-                   Temp_L = Xe1L, 
-                   Temp_H = Xe1U)
+                   Temp_L = Xe1U, 
+                   Temp_H = Xe1L)
   }
   
 }

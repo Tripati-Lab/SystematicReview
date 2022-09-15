@@ -4,7 +4,9 @@ BayesianPredictions <- function(calModel,
                                 calData,
                                 recData,
                                 iter = 3000,
-                                priors = "Uninformative"){
+                                priors = "Uninformative",
+                                prior_mu = 11,
+                                prior_sig = 5){
   
 vects.params <- extract(calModel)
 
@@ -66,25 +68,31 @@ stan_date <- list(n = nrow(recData),
                   alpha = vects.params$alpha,
                   beta = vects.params$beta,
                   sigma = vects.params$sigma,
-                  prior_mu = 11,
-                  prior_sig = 5)
+                  prior_mu = prior_mu,
+                  prior_sig = prior_sig)
 iter = 3000
 options(mc.cores = parallel::detectCores())
 data.rstan <- stan(data = stan_date, model_code = if(priors == "Uninformative"){ununfpredMod}else{predMod}, 
-                   chains = 4, iter = iter, warmup = floor(iter/2),
-                   thin = 1, control = list(adapt_delta = 0.90, max_treedepth = 10))
+                   chains = 2, iter = iter, warmup = floor(iter/2),
+                   , control = list(adapt_delta = 0.90, max_treedepth = 10)
+                   )
 
 params2 <- extract(data.rstan)
 Xouts2 <- params2$x_new
 Xdims2 <- dim(Xouts2)
 xis <- list()
 recs <- lapply(1:Xdims2[2], function(x){
-  xis <- sqrt( 10^6/as.vector(Xouts2[,x,])) - 273.15
-  quantile(xis, c(0.025, 0.975))
+  cbind.data.frame(mean(Xouts2[,x,]), quantile(Xouts2[,x,], c(0.025)),
+                                               quantile(Xouts2[,x,], c(0.975)))
 })
 
-preds <- cbind.data.frame(recData, do.call(rbind, recs))
+recs <- do.call(rbind, recs)
 
+cbind.data.frame(Sample = recData$Sample, 
+                 D47 = recData$D47, 
+                 D47error = recData$D47error, 
+                 meanTemp = sqrt(10^6/recs[,1]) - 273.15, 
+                 Temp_L = sqrt(10^6/recs[,3]) - 273.15, 
+                 Temp_H = sqrt(10^6/recs[,2]) - 273.15)
 
-return(datPred)
 }

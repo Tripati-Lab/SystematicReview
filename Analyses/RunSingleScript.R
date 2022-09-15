@@ -37,19 +37,46 @@ nonBayesianParamsComplete <- rbindlist(list("OLS" = lmcals,
                                             "York" = yorkcals,
                                             "Deming" = demingcals),
                                        idcol = "Model")       
-       
-BayesianPosteriors <- rbindlist(list("BLM1_fit" = do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM1_fit)),
-                                     "BLM1_fit_NoErrors" = do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM1_fit_NoErrors)),
-                                     "BLM3_fit"=do.call(rbind.data.frame,as.mcmc(bayeslincals$BLM3_fit))), idcol = "Model", fill = T)  
+     
+rbindlist(list("BLM1_fit" = summary(bayeslincals$BLM1_fit)$summary,
+"BLM1_fit_NoErrors" = summary(bayeslincals$BLM1_fit_NoErrors)$summary,
+"BLM3_fit" = summary(bayeslincals$BLM3_fit)$summary), idcol = )
 
-Params <- rbind.data.frame(nonBayesianParamsComplete, BayesianPosteriors[,1:3])
+Params <- rbind.data.frame(nonBayesianParamsComplete)
+ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), sd = sd(x)) )
+ParamEstimates <- as.data.frame(as.matrix(ParamEstimates))
 
-ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), se = sd(x)/sqrt(length(x)) ))
 
-#calData$Tc <- sqrt(10^6/(calData$T2))-273.15
-#calData$TcE <- abs((sqrt(10^6/(calData$T2))-273.15) - (sqrt(10^6/(calData$T2+abs(calData$TempError)))-273.15))
-              
+sumBayesian <- rbind.data.frame(
+cbind.data.frame(
+Model = "BLM1_fit",
+alpha.mean = summary(bayeslincals$BLM1_fit)$summary[1,1],
+alpha.sd = summary(bayeslincals$BLM1_fit)$summary[1,3],
+beta.mean = summary(bayeslincals$BLM1_fit)$summary[2,1],
+beta.sd = summary(bayeslincals$BLM1_fit)$summary[2,3]
+),
 
+cbind.data.frame(
+  Model = "BLM1_fit_NoErrors",
+  alpha.mean = summary(bayeslincals$BLM1_fit_NoErrors)$summary[1,1],
+  alpha.sd = summary(bayeslincals$BLM1_fit_NoErrors)$summary[1,3],
+  beta.mean = summary(bayeslincals$BLM1_fit_NoErrors)$summary[2,1],
+  beta.sd = summary(bayeslincals$BLM1_fit_NoErrors)$summary[2,3]
+),
+
+cbind.data.frame(
+  Model = "BLM3_fit",
+  alpha.mean = summary(bayeslincals$BLM3_fit)$summary[1,1],
+  alpha.sd = summary(bayeslincals$BLM3_fit)$summary[1,3],
+  beta.mean = summary(bayeslincals$BLM3_fit)$summary[2,1],
+  beta.sd = summary(bayeslincals$BLM3_fit)$summary[2,3]
+)
+)
+
+ParamEstimates <- rbind.data.frame(ParamEstimates, sumBayesian)
+
+
+##Reconstructions
 lmrecClassic <-  predictTc(calData = calData,
                            recData = recData,
                            obCal = lmcals,
@@ -64,42 +91,38 @@ lminverserecClassic <-  predictTc(calData = calData,
                                   obCal = lminversecals)
 
 
+lminverserecSimple <-  predictTc(calData = calData,
+                                  recData = recData,
+                                  obCal = lminversecals,
+                                 clumpedClassic = FALSE)
 
 yorkrecClassic <-  predictTc(calData = calData,
                              recData = recData,
-                             obCal = yorkcals ,
-                             IgnoreParamUncertainty = TRUE)
+                             obCal = yorkcals)
 
-yorkrecUncertainty <-  predictTc(calData = calData,
+yorkrecSimple <-  predictTc(calData = calData,
                                  recData = recData,
                                  obCal = yorkcals,
-                                 IgnoreParamUncertainty = FALSE)
+                                 clumpedClassic = FALSE)
 
 demingrecClassic <-  predictTc(calData = calData,
                                recData = recData,
                                obCal = demingcals ,
-                               IgnoreParamUncertainty = TRUE)
+                               clumpedClassic = TRUE)
 
-demingrecUncertainty <-  predictTc(calData = calData,
+demingrecSimple <-  predictTc(calData = calData,
                                    recData = recData,
                                    obCal = demingcals ,
-                                   IgnoreParamUncertainty = FALSE)
+                                   clumpedClassic = FALSE)
 
 infTempBayesianBLM1 <- BayesianPredictions(calModel = bayeslincals$BLM1_fit,
                     calData = calData,
-                    recData = recData,
-                    iter = 500,
-                    warmup = 100)
+                    recData = recData)
 
 infTempBayesianBLM1_fit_NoErrors <- BayesianPredictions(calModel = bayeslincals$BLM1_fit_NoErrors,
                                        calData = calData,
-                                       recData = recData,
-                                       iter = 500,
-                                       warmup = 100)
+                                       recData = recData)
 
-
-
-            
 
 RecComplete <- rbindlist(list("OLS"=lmrecClassic,
                               "York"=yorkrecClassic,
