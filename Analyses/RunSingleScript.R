@@ -21,7 +21,7 @@ RunSingleFullResults <- function(name="S3",
                                  priors){
 
 calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
-recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template_replicates.csv")) 
+recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template.csv")) 
 
 lmcals <- simulateLM_measured(calData, replicates = replicates, samples = samples)
 lminversecals <- simulateLM_inverseweights(calData, replicates = replicates, samples = samples)
@@ -53,25 +53,15 @@ ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), se 
 lmrecClassic <-  predictTc(calData = calData,
                            recData = recData,
                            obCal = lmcals,
-                           IgnoreParamUncertainty = TRUE)
-  
-lmrecUncertainty <-  predictTc(calData = calData,
-                               recData = recData,
-                               obCal = lmcals,
-                               IgnoreParamUncertainty = FALSE)
-
-
-
+                           clumpedClassic = TRUE)
+lmrecSimple <-  predictTc(calData = calData,
+                           recData = recData,
+                           obCal = lmcals,
+                           clumpedClassic = FALSE)
 
 lminverserecClassic <-  predictTc(calData = calData,
                                   recData = recData,
-                                  obCal = lminversecals,
-                                  IgnoreParamUncertainty = TRUE)
-
-lminverserecUncertainty <-  predictTc(calData = calData,
-                                      recData = recData,
-                                      obCal = lminversecals,
-                                      IgnoreParamUncertainty = FALSE)
+                                  obCal = lminversecals)
 
 
 

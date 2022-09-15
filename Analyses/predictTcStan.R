@@ -8,78 +8,59 @@ BayesianPredictions <- function(calModel,
   
 vects.params <- extract(calModel)
 
-sd(lmcals$alpha)
-sd(lmcals$beta)
-
-sd(vects.params$alpha)
-sd(vects.params$beta)
-mean(vects.params$alpha)
-mean(vects.params$beta)
-
 ##Reconstruction
 predMod = "
- data {
-    int<lower=0> N;
-    int<lower=0> M; 
-    vector[N] y;
-    vector[M] beta;
-    vector[M] alpha;
-    vector[M] sigma;
-    vector[N] prior_mu;
-    real prior_sig;
- }
+data {
+  int<lower=0> n;
+  vector[n] y;
 
-parameters {
-    matrix<lower=0>[N,M] x;
+  int<lower=0> posts;
+  vector[posts] alpha;              
+  vector[posts] beta;
+  vector[posts] sigma;  
+  real prior_mu;
+  real prior_sig;
 }
 
-transformed parameters {
- matrix[N, M] mu2 = sqrt(pow(10,6)*inv(x)) - 273.15;
+parameters {
+  matrix[n, posts] x_new;
 }
 
 model {
-   vector[N] mu;
-for (m in 1:M) {
-    x[:,m] ~ normal(prior_mu, prior_sig);
-    mu = alpha[m] + beta[m] * x[:,m];
-    y ~ normal(mu, sigma[m]);
- }
+  vector[posts] y_new_hat; 
+  for(i in 1:n){
+    x_new[i,] ~ normal(prior_mu, prior_sig);
+    y_new_hat = alpha + beta .* x_new[i,]';
+    y[i] ~ normal(y_new_hat, sigma);
+}
 }
 "
 
-stan_date <- list(N = nrow(recData), 
-                  M = length(vects.params$alpha),
+stan_date <- list(n = nrow(recData), 
                   y = recData$D47, 
-                  beta = vects.params$beta, 
+                  posts = length(vects.params$beta), 
                   alpha = vects.params$alpha,
+                  beta = vects.params$beta,
                   sigma = vects.params$sigma,
-                  prior_mu = rep(11, nrow(recData)),
-                  prior_sig = sd(calData$Temperature)
-                  )
-
+                  prior_mu = 11,
+                  prior_sig = 5)
+iter = 3000
+options(mc.cores = parallel::detectCores())
 data.rstan <- stan(data = stan_date, model_code = predMod, 
-                   chains = 2, iter = iter, warmup = warmup,
-                   thin = 1)
-s <- mcmc.list(lapply(1:ncol(data.rstan), function(x) mcmc(as.array(data.rstan)[,x,])))
-s <- do.call(rbind,s)
+                   chains = 4, iter = iter, warmup = floor(iter/2),
+                   thin = 1, control = list(adapt_delta = 0.90, max_treedepth = 10))
 
-
-tT <- s[,grep("mu2", colnames(s))]
-index <- rep(1:nrow(recData), each=1, times = ncol(tT)/nrow(recData))
-indexSample <- rep(as.numeric(as.factor(recData$Sample)), times = ncol(tT)/nrow(recData))
-
-predTemp <- lapply(unique(indexSample), function(y){
-  tTSub <- tT[,which(indexSample == y)]
-    cbind.data.frame(meanTemp = mean(tTSub), 
-                     sdTemp = sd(tTSub)
-    )
+params2 <- extract(data.rstan)
+Xouts2 <- params2$x_new
+Xdims2 <- dim(Xouts2)
+xis <- list()
+recs <- lapply(1:Xdims2[2], function(x){
+  xis <- sqrt( 10^6/as.vector(Xouts2[,x,])) - 273.15
+  quantile(xis, c(0.025, 0.975))
 })
 
-predTemp <- do.call(rbind, predTemp)
-datPred <- cbind.data.frame(meanD47 = aggregate(recData$D47, list(recData$Sample), mean)[,2]
-                 , sdD47 = aggregate(recData$D47, list(recData$Sample), sd)[,2]
-                 , predTemp)
-attr(datPred, "priors") <-  s
+preds <- cbind.data.frame(recData, do.call(rbind, recs))
+
 
 return(datPred)
 }

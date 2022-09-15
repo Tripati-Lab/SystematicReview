@@ -1,65 +1,43 @@
-
-
-obCal <- lmcals
-
 predictTc <<- function(calData,
                        recData,
                        obCal,
-                       IgnoreParamUncertainty = TRUE){
+                       clumpedClassic = TRUE){
+
   
-  if(IgnoreParamUncertainty){
+  if(clumpedClassic){
     
-  samples <- unique(recData$Sample)
-  recTemp <- lapply(seq_along(samples), function(x){
-    subrecData <- recData[recData$Sample == samples[x],]
-    temp <- sqrt((mean(obCal$beta) * 10 ^ 6) / 
-                 (subrecData$D47 - mean(obCal$alpha))) - 273.15
-    recTempS <- cbind.data.frame(meanD47 = mean(subrecData$D47),
-                                 sdD47 = sd(subrecData$D47),
-                                 meanTemp = mean(temp), 
-                                 sdTemp = sd(temp))
-    return(recTempS)
-  } )
-  
-  recTemp <- do.call(rbind, recTemp)
-  preds <- cbind.data.frame(Sample = samples, recTemp)
-  preds
+      temp <- sqrt((mean(obCal$beta) * 10 ^ 6) / 
+                     (recData$D47 - mean(obCal$alpha))) - 273.15
+      temp_SE <- sqrt((mean(obCal$beta) * 10 ^ 6) / 
+                     (recData$D47 + recData$D47error - mean(obCal$alpha))) - 273.15
+      se = temp-temp_SE
+      recTempS <- cbind.data.frame(Sample = recData$Sample,
+                                   D47 = recData$D47,
+                                   D47error = recData$D47error,
+                                   meanTemp = temp, 
+                                   Temp_L = temp - 1.96 * se, 
+                                   Temp_H = temp + 1.96 * se)
+    
   }else{
+  
+#McClelland, H. L., Halevy, I., Wolf‐Gladrow, D. A., Evans, D., & Bradley, A. S. (2021). Statistical uncertainty in paleoclimate proxy reconstructions. Geophysical Research Letters, 48(15), e2021GL092773.
     
-  calData <<- calData
-  obCal <<- observedCalibration
-  std2 <<- function(i) sd(i)/sqrt(length(i))
-  mod <<- stats::nls(formula = D47  ~ a + b1*(10^6/(Temperature+273.15)^2),
-                     data = calData, 
-                     start = list(a = mean(obCal$alpha),
-                                  b1 = mean(obCal$beta)),
-                     lower = c(a = (mean(obCal$alpha)-std2(obCal$alpha)*1.96),b1 = (mean(obCal$beta)-std2(obCal$beta)*1.96)),
-                     upper = c(a = (mean(obCal$alpha)+std2(obCal$alpha)*1.96),b1 = (mean(obCal$beta)+std2(obCal$beta)*1.96)),
-                     algorithm = "port") 
+  X_new_hat  <- (recData$D47 - mean(obCal$alpha)) / mean(obCal$beta)
   
-  samples <- unique(recData$Sample)
-  indPreds <- lapply(seq_along(samples), function(x){
-    subrecData <- recData[recData$Sample == samples[x],]
-    
-    temps <- unlist(lapply(subrecData$D47, function(y){
-    estimate <<- investr::invest(mod, y0 = y,
-                               interval = "percentile",  
-                               seed = 3, 
-                               nsim = 1,
-                               extendInt = "yes", 
-                               progress = F, 
-                               lower = -100,
-                               upper = 100)$estimate
-    }))
-  
-  recTempS <- cbind.data.frame(meanD47 = mean(subrecData$D47),
-                               sdD47 = sd(subrecData$D47),
-                               meanTemp = mean(temps), 
-                               sdTemp = sd(temps))
-  })
-  
-  preds <- do.call(rbind, indPreds)
-  preds <- cbind.data.frame(Sample = samples, preds)
-  
+  Cqts   <- c(0.025, 0.975)
+  Tval   <- qt(Cqts, df = (nrow(calData)-2)) 
+  Yhat   <-  mean(obCal$alpha) + calData$Temperature*mean(obCal$beta) 
+  ysd    <- sd(calData$D47 - Yhat)
+  Xe1    <- (ysd * Tval) / mean(obCal$alpha)
+  Xe1L   <- sqrt(10^6/X_new_hat + Xe1[1]) - 273.15
+  Xe1U   <- sqrt(10^6/X_new_hat + Xe1[2]) - 273.15 
+
+  cbind.data.frame(Sample = recData$Sample, 
+                   D47 = recData$D47, 
+                   D47error = recData$D47error, 
+                   meanTemp = sqrt(10^6/X_new_hat)-273.15, 
+                   Temp_L = Xe1L, 
+                   Temp_H = Xe1U)
   }
+  
 }

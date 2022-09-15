@@ -1,48 +1,62 @@
+vects.params <- extract(bayeslincals$BLM1_fit)
+
 
 ##Reconstruction
 predMod = "
 data {
-  int<lower=0> n_new;   // No 'new' y measurements to infer x_new from
-  vector[n_new] y_new;
+  int<lower=0> n;
+  vector[n] y;
 
   int<lower=0> posts;
-  vector[posts] B0;              
-  vector[posts] B1;
-  vector[posts] sig;   
+  vector[posts] alpha;              
+  vector[posts] beta;
+  vector[posts] sigma;  
+  real prior_mu;
+  real prior_sig;
 }
 
 parameters {
-  matrix[n_new, posts] x_new;   # NB: flat priors
+  matrix[n, posts] x_new;
 }
 
 model {
   vector[posts] y_new_hat; 
-  for(i in 1:n_new){
-    y_new_hat = B0 + B1 .* x_new[i,]';
-    y_new[i] ~ normal(y_new_hat, sig);
+  for(i in 1:n){
+    x_new[i,] ~ normal(prior_mu, prior_sig);
+    y_new_hat = alpha + beta .* x_new[i,]';
+    y[i] ~ normal(y_new_hat, sigma);
 }
 }
 "
 
-stan_date <- list(n_new = nrow(recData), 
-                  y_new= recData$D47, 
+
+
+stan_date <- list(n = nrow(recData), 
+                  y = recData$D47, 
                   posts = length(vects.params$beta), 
-                  B0 = vects.params$alpha,
-                  B1 = vects.params$beta,
-                  sig = vects.params$sigma)
-iter = 1000
+                  alpha = vects.params$alpha,
+                  beta = vects.params$beta,
+                  sigma = vects.params$sigma,
+                  prior_mu = 11,
+                  prior_sig = 5)
+iter = 3000
+options(mc.cores = parallel::detectCores())
 data.rstan <- stan(data = stan_date, model_code = predMod, 
-                   chains = 2, iter = iter, warmup = iter/2,
+                   chains = 4, iter = iter, warmup = floor(iter/2),
                    thin = 1)
-print(data.rstan)
+
+Cqts   <- c((1-95/100)/2, 1 - (1-95/100)/2) 
 
 params2 <- extract(data.rstan)
 Xouts2 <- params2$x_new
-Xdims2 <-dim(Xouts2)
-for(xi in 1: Xdims2[2]){
-  xis <- as.vector(Xouts2[,xi,])
-  Xe4[xi,] <- quantile(xis, Cqts)
-}
+Xdims2 <- dim(Xouts2)
+xis <- list()
+recs <- lapply(1:Xdims2[2], function(x){
+  xis <- sqrt( 10^6/as.vector(Xouts2[,x,])) - 273.15
+  quantile(xis, Cqts)
+})
+
+preds <- cbind.data.frame(recData, do.call(rbind, recs))
 
 
 
