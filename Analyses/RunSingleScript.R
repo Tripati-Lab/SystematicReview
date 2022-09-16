@@ -17,7 +17,6 @@ init.values = FALSE
 RunSingleFullResults <- function(name="S3",
                                  replicates, 
                                  samples, 
-                                 ngenerationsBayes, 
                                  priors){
 
 calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
@@ -29,7 +28,6 @@ yorkcals <- simulateYork_measured(calData, replicates = replicates, samples = sa
 demingcals <- simulateDeming(calData, replicates = replicates, samples = samples)
 bayeslincals <- fitClumpedRegressions(calibrationData = calData, 
                                       priors = priors,
-                                      numSavedSteps = ngenerationsBayes,
                                       samples = samples)
 
 nonBayesianParamsComplete <- rbindlist(list("OLS" = lmcals,
@@ -123,29 +121,36 @@ infTempBayesianBLM1_fit_NoErrors <- BayesianPredictions(calModel = bayeslincals$
                                        calData = calData,
                                        recData = recData)
 
+infTempBayesianBLM1_in <- BayesianPredictions(calModel = bayeslincals$BLM1_fit,
+                                           calData = calData,
+                                           recData = recData,
+                                           priors = "Informative")
 
-RecComplete <- rbindlist(list("OLS"=lmrecClassic,
-                              "York"=yorkrecClassic,
-                              "Deming"=demingrecClassic,
-                              "WOLS"=lminverserecClassic,
-                              "BayesianBLM1" = infTempBayesianBLM1,
-                              "BayesianBLM1_NoErrors" =infTempBayesianBLM1
+infTempBayesianBLM1_fit_NoErrors_in <- BayesianPredictions(calModel = bayeslincals$BLM1_fit_NoErrors,
+                                                        calData = calData,
+                                                        recData = recData,
+                                                        priors = "Informative")
+
+
+RecComplete <- rbindlist(list("OLS_classic"=lmrecClassic,
+                              "OLS_simple"=lmrecSimple,
+                              "York_classic"=yorkrecClassic,
+                              "York_simple"=yorkrecSimple,
+                              "Deming_classic"=demingrecClassic,
+                              "Deming_simple"=demingrecSimple,
+                              "WOLS_classic"=lminverserecClassic,
+                              "WOLS_simple"=lminverserecSimple,
+                              "BayesianBLM1_noninformative" = infTempBayesianBLM1,
+                              "BayesianBLM1_NoErrors_noninformative" =infTempBayesianBLM1_fit_NoErrors,
+                              "BayesianBLM1_informative" = infTempBayesianBLM1_in,
+                              "BayesianBLM1_NoErrors_informative" =infTempBayesianBLM1_fit_NoErrors_in
                               ),
                          idcol = "Model", fill = TRUE)
 
 
-colnames(BayesianRecs)[3] <- "D47"
-
-colnames(RecComplete)[c(5,3)] <- c("sd","D47PredErr")
-
-RecComplete <- rbindlist(list(BayesianRecs, RecComplete), fill = TRUE)
-
-
 toRet <- list("ParameterEstimates"=ParamEstimates,
      "Reconstructions"=RecComplete,
-     "RawParams"=Params,
-     BayesianRecs,
-     bayeslincals
+     "RawParams"=Params
      )
 
 write.csv(ParamEstimates, here::here("Analyses","Results",paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_ParameterEstimates.csv")))
