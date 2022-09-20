@@ -14,6 +14,8 @@ source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Cal
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
 
 
+if(!file.exists(here::here("Figures/WS_Fig3.RData"))){
+
 samples = 50
 ngenerationsBayes = 3000
 name = "S2"
@@ -43,9 +45,9 @@ bayeslincals_Uninformative <- fitClumpedRegressions(calibrationData = calData,
                                            samples = samples)
 
 
+save.image(here::here("Figures/WS_Fig3.RData"))
 
-
-
+}
 
 
 dirList <- list.dirs(".")[-1]
