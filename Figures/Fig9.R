@@ -1,29 +1,18 @@
-setwd("~/MEGA/Projects/2_BayClump_reviews/May2022/Figures")
 library(rio)
 library(data.table)
 library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
+source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
+ggthemr('light')
 
+ds <- here::here("Analyses", "Results", "Petersen")
+datasets <- rio::import_list(list.files(ds, full.names = T))
+datasets <- datasets[grep(" CI", names(datasets))]
+datasets <- rbindlist(datasets, idcol = "Model", fill = TRUE)
 
-dirList <- list.dirs(".")[-1]
-dirList <- list.dirs()[grep("Fig8", list.dirs())]
-
-target <- dirList[1]
-TargetOutputFiles<-list.files(target,  full.names = T)
-calEst <- import_list(TargetOutputFiles[[1]])
-calEst <- calEst[grep( "CI", names(calEst))]
-regs <- rbindlist(calEst, idcol = "Model", fill = TRUE)
-
-
-Petersen <- RegressionSingleCI(data.frame(alpha=rnorm(1000, 0.258, 1.70E-05),
-                                          beta=rnorm(1000, 0.0383, 1.70E-06)), 0.8,13.6)
-
-#regs <- rbindlist(list(calEst, cbind.data.frame(Model="Petersen", Petersen)), fill = T)
-
-
-regs$Model <- factor(regs$Model,
+datasets$Model <- factor(datasets$Model,
                                levels = c("Bayesian model no errors CI", 
                                           "Bayesian model with errors CI",
                                           "Bayesian mixed w errors CI",
@@ -35,17 +24,24 @@ regs$Model <- factor(regs$Model,
                                  c("B-SL", "B-SL-E", "B-LMM", "OLS", "W-OLS", "D", "Y")
 )
 
-colnames(regs)[2] <- "Temperature"
 
-p1 <- ggplot(data=regs) +
+Petersen <- RegressionSingleCI(data.frame(alpha=rnorm(1000, 0.258, 1.70E-05),
+                                          beta=rnorm(1000, 0.0383, 1.70E-06)), 0.8,13.6)
+
+
+colnames(datasets)[2] <- "Temperature"
+regs <- datasets
+
+p1 <- 
+  ggplot(data=regs) +
    geom_ribbon(data=regs,aes(x=Temperature, y = D47_median_est, ymin = D47_ci_lower_est,
-                            ymax = D47_ci_upper_est),color=NA,fill="orange",
+                            ymax = D47_ci_upper_est), fill = "grey",
               alpha = 0.8)+
-  geom_line(data=regs,aes(x=Temperature, y = D47_median_est), color="blue")+
+  geom_line(data=regs,aes(x=Temperature, y = D47_median_est), color= 'black')+
   geom_line(data=Petersen[[1]],
             aes(x=x, y = median_est), color="red", lty="dashed")+
   geom_ribbon(data=Petersen[[1]],aes(x=x, y = median_est, ymin = ci_lower_est,
-                                     ymax = ci_upper_est),color=NA,fill="grey",
+                                     ymax = ci_upper_est), color=NA,
               alpha = 0.8)+
   facet_grid(.~Model) +
   ylab(expression(Delta["47"]*" (‰)" ))+ 
@@ -71,11 +67,11 @@ p1 <- ggplot(data=regs) +
   )+ theme(text = element_text(size = 17))
 
 
-pdf('Plots/Fig8.pdf', 15, 4)
+pdf(here::here("Figures","Plots",'Fig9.pdf'), 15, 4)
 print(p1)
 dev.off()
 
-jpeg("Plots/Fig8.jpg", 15, 4, units = "in", res=300)
+jpeg(here::here("Figures","Plots","Fig9.jpg"), 15, 4, units = "in", res=300)
 print(p1)
 dev.off()
 
