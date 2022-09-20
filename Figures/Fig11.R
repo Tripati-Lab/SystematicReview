@@ -1,75 +1,44 @@
-setwd("~/MEGA/Projects/2_BayClump_reviews/May2022/Figures")
 library(rio)
 library(data.table)
 library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
+source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
+ggthemr('light')
+
+ds <- list.files(here::here("Analyses", "Results", "Sun", "Petersen"), full.names = TRUE)
+datasets <- rio::import_list(ds)
+datasets <- rbindlist(datasets, idcol = "Model")
+
+datasets$SE <- c(datasets$`Up, 95% CI` - datasets$`LW, 95% CI`) / 3.92
+
+#write.csv(datasets, here::here("Figures", "OriginalSun.csv"))
+
+ds_sun <- read.csv(here::here("Figures", "OriginalSun.csv"), row.names = 1)
 
 
-dirList <- list.dirs(".")[-1]
-dirList <- list.dirs()[grep("Fig10", list.dirs())]
+fullDS <- rbindlist(list(datasets, ds_sun))
+fullDS$Sample <- ifelse(fullDS$`Δ47 (‰)` == 0.706, "~6.2 Ma", "0")
+fullDS$Temperature <- fullDS$`Temperature (°C)`
 
-target <- dirList[1]
-TargetOutputFiles<-list.files(target,  full.names = T)
-atm <- import_list(TargetOutputFiles[[1]])
-full <- import_list(TargetOutputFiles[[2]])
-petersen <- import_list(TargetOutputFiles[[3]])
 
-atm <- rbindlist(atm, idcol = "Model", fill = TRUE)
-full <- rbindlist(full, idcol = "Model", fill = TRUE)
-petersen <- rbindlist(petersen, idcol = "Model", fill = TRUE)
+                                                              
+                                 
+                  
 
-dataset <- rbindlist(list(atm=atm,full=full, petersen=petersen), idcol = "Dataset")
 
-sun <- read.csv(TargetOutputFiles[[4]])
-
-colnames(sun)[c(3,7)] <- c("D47", "Model")
-colnames(dataset)[c(3,5,6)] <- c("D47", "Temperature", "Error")
-
-sun1 <- sun
-sun2 <- sun
-sun3 <- sun
-
-sun1$Dataset <- "atm"
-sun2$Dataset <- "full"
-sun3$Dataset <- "petersen"
-
-sun1$type <- "sun"
-sun2$type <- "sun"
-sun3$type <- "sun"
-
-fullDS <- rbindlist(list(dataset, sun1, sun2, sun3 ), fill = T)
-
-fullDS$Type <- ifelse(is.na(fullDS$type), 'Re-analysis', 'Sun et al. (2021)')
-
-fullDS$Age <- rep(c(6.2,0), nrow(fullDS)/2 )
 
 fullDS$Model <- factor(fullDS$Model,
-                               levels = c("Bayesian linear model", 
-                                          "Bayesian linear model, errors",
-                                          "Bayesian linear mixed model",
-                                          "Linear",
-                                          "Inverse linear",
-                                          "Deming", 
-                                          "York",
-                                          "Tripati et al. (2015)",
-                                          "Henkes et al. (2013)",
-                                          "Petersen et al. (2019)"
-                                          ) ,
-                               labels = 
-                                 c("B-SL", "B-SL-E", "B-LMM", "OLS", "W-OLS", "D", "Y",
-                                   "T-2015", "H-2013", "P-2019")
+                         levels = c("Bayesian linear model", "Bayesian linear model, errors", "Bayesian linear mixed model" , "Linear" , "Inverse linear", "Deming", "York" , "Henkes et al. (2013)" , "Tripati et al. (2015)", "Petersen et al. (2019)"   ) ,
+                         labels = 
+                           c("B-SL", "B-SL-E", "B-LMM", "OLS", "W-OLS", "D", "Y", "H-2013", "T-2015", "P-2019")
 )
 
-fullDS$Dataset <- factor(fullDS$Dataset, levels = c("petersen", "full", "atm"),
-                         labels = c("Petersen", "Anderson - Full" , "Anderson - ATM"))
-
 p1 <- ggplot(data=fullDS) +
-  geom_errorbar(aes(x=Model, ymin = Temperature-Error,ymax = Temperature+Error, color=factor(Age), linetype=Type),
+  geom_errorbar(aes(x=Model, ymin = Temperature-SE,ymax = Temperature+SE, color=factor(Sample)),
                 position=position_dodge(width=0.9), width=0.5, size=.7)+
-  geom_point(aes(y=Temperature, x=Model, color=factor(Age)), position=position_dodge(width=0.9))+
-  facet_grid(Dataset~.) + 
+  geom_point(aes(y=Temperature, x=Model, color=factor(Sample)), position=position_dodge(width=0.9))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.title.x = element_text(colour = "black"),
         axis.title.y = element_text(colour = "black"),
@@ -88,11 +57,11 @@ p1 <- ggplot(data=fullDS) +
   )+ theme(text = element_text(size = 20))+ ylab("Temperature (°C)")
 
 
-pdf('Plots/Fig11.pdf', 15, 7)
+pdf(here::here("Figures","Plots",'Fig11.pdf'), 10, 5)
 print(p1)
 dev.off()
 
-jpeg('Plots/Fig11.jpg', 15, 7, units = "in", res=300)
+jpeg(here::here("Figures","Plots",'Fig11.jpg'), 10, 5, units = "in", res=300)
 print(p1)
 dev.off()
 
