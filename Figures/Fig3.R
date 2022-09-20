@@ -49,49 +49,42 @@ save.image(here::here("Figures/WS_Fig3.RData"))
 
 }
 
+load(here::here("Figures/WS_Fig3.RData"))
 
-dirList <- list.dirs(".")[-1]
-dirList <- list.dirs()[grep("Fig3", list.dirs())]
-
-    target <- dirList[1]
-    TargetOutputFiles<-list.files(target,  full.names = T)
-    posterior_diffuse <- import_list(TargetOutputFiles[[1]])
-    posterior_informed <- import_list(TargetOutputFiles[[3]])
-    
-    prior_diffuse <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*3 ), 
-                                      beta=rnorm(1000, 0.039,0.004*3 ))
+    #Priors
+    prior_weak <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*2 ), 
+                                      beta=rnorm(1000, 0.039,0.004*2 ))
     prior_informed <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*1 ), 
                                        beta=rnorm(1000, 0.039,0.004*1 ))
+    prior_uninformed <- cbind.data.frame(alpha=rnorm(1000, 0.01,0.01 ), 
+                                      beta=rnorm(1000, 0.01,0.01 ))
     
-    prior_informed$Model <- "prior prior_informed"
-    prior_diffuse$Model <- "prior prior_diffuse"
-    
-    posterior_informed <- rbindlist(posterior_informed, idcol = "Model", fill=T)
-    posterior_diffuse <- rbindlist(posterior_diffuse, idcol = "Model", fill=T)
+    prior_informed$Model <- "Prior"
+    prior_weak$Model <- "Prior"
+    prior_uninformed$Model <- "prior prior_uninformed"
     
     
+    params_inf <- data.frame(rstan::extract(bayeslincals_informative$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
+    params_weak <- data.frame(rstan::extract(bayeslincals_weak$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
     
-   dataset <- rbindlist(list(Informed=posterior_informed,
-                             Diffuse=posterior_diffuse,
+  colnames(params_inf)
+  colnames(params_noninf)
+  colnames(prior_informed)
+  colnames(prior_uninformed)
+  
+    
+   dataset <- rbindlist(list(Informed=params_inf,
+                             Weak=params_weak,
                              Informed=prior_informed,
-                             Diffuse=prior_diffuse
+                             Weak=prior_weak
                              ), idcol = "Dist", fill= TRUE)
     
     
-   dataset$Model <- factor(dataset$Model,
-                        levels = c("Bayesian model no errors", 
-                                   "Bayesian model with errors",
-                                   "Bayesian mixed w errors",
-                                   "prior prior_informed",
-                                   "prior prior_diffuse") ,
-                        labels = 
-                          c("B-SL", "B-SL-E", "B-LMM", "P-I", "P-D")
-   )
    
 p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model))+
      stat_density()+
      facet_wrap(~Dist)+ 
-     geom_vline(xintercept = 0.268, linetype="dashed", color='black')+
+     geom_vline(xintercept = 0.268, linetype="dashed", color='black') +
      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
            axis.title.x = element_text(colour = "black"),
            axis.title.y = element_text(colour = "black"),
@@ -110,8 +103,13 @@ p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"),
         axis.ticks = element_line(colour = "black")
-  ) + theme(text = element_text(size = 22))  
+  ) + theme(text = element_text(size = 22),
+            legend.text=element_text(color="black",size=15),
+            legend.title=element_blank())  +
+  theme(legend.position="bottom")
    
+
+
 p2 <- ggplot(data = dataset, aes(x=beta, fill=Model))+
   stat_density()+
   facet_wrap(~Dist)+ 
@@ -134,16 +132,18 @@ p2 <- ggplot(data = dataset, aes(x=beta, fill=Model))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"),
         axis.ticks = element_line(colour = "black")
-  ) + theme(text = element_text(size = 22))   
+  )  + theme(text = element_text(size = 22),
+             legend.text=element_text(color="black",size=15),
+             legend.title=element_blank())  +
+  theme(legend.position="bottom") 
 
 completePlot <- ggarrange(p1, p2)
 
-
-pdf("Plots/Fig3.pdf", 20, 5)
+pdf(here::here("Figures","Plots","Fig3.pdf"), 20, 5)
 print(completePlot)
 dev.off()
 
-jpeg("Plots/Fig3.jpg", 20, 5, units = "in", res=300)
+jpeg(here::here("Figures","Plots","Fig3.jpg"), 20, 5, units = "in", res=300)
 print(completePlot)
 dev.off()
 
