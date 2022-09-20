@@ -74,7 +74,6 @@ p1 <-
         legend.text=element_text(color="black",size=15),
         legend.key.size = unit(7,"point"), 
         legend.title=element_blank())+ 
-  #scale_fill_continuous(guide = guide_legend()) +
   theme(legend.position="bottom") +
   guides(colour = guide_legend(nrow = 1))
 

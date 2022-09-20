@@ -20,7 +20,24 @@ completePreds$within95 <- data.table::between(completePreds$True.Temp, completeP
                                               completePreds$Tc + 1.96*completePreds$se)
 completePreds$Bayesian <- grepl("BLM", completePreds$Model)
   
-write.csv(completePreds, here("Analyses", "Results", 'Complete.predictions.csv'))
+completePreds$Model2 <- completePreds$Model
+completePreds$Model <- sapply(completePreds$Model2, function(x){
+  target <- strsplit(x, "_")[[1]]
+  if(target[2] == "NoErrors" ){
+    paste0(target[1],"_", target[2] )
+  }else{
+    target[1]
+  }
+})
+
+completePreds$Routine <- sapply(completePreds$Model2, function(x){
+  target <- strsplit(x, "_")[[1]]
+  target[length(target)]
+  
+})
+
+
+#write.csv(completePreds, here("Analyses", "Results", 'Complete.predictions.csv'))
 
 dist=0.5
 
@@ -28,33 +45,37 @@ completePreds2 <- completePreds
 
 
 completePreds2$Model <- factor(completePreds2$Model,
-                               levels = c("BLM1_fit_NoErrors", "BLM1_fit", "BLM3",
+                               levels = c("BayesianBLM1_NoErrors", "BayesianBLM1",
                                           "OLS","WOLS","Deming", "York") ,
                                labels = 
-                               c("B-SL", "B-SL-E", "B-LMM", "OLS", "W-OLS", "D", "Y")
+                               c("B-SL", "B-SL-E", "OLS", "W-OLS", "D", "Y")
 )
 
 
-completePreds2$D47se <- factor(completePreds2$D47PredErr, levels = unique(completePreds2$D47PredErr),
-                   labels = c('Error in target D47 = 0.005‰', "0.01‰", "0.02‰"))
+completePreds2$D47se <- factor(completePreds2$D47error, levels = unique(completePreds2$D47error),
+                   labels = c('Error in target Δ47 = 0.005‰', "0.01‰", "0.02‰"))
 
 completePreds2$Dataset <- factor(completePreds2$Dataset, levels = unique(completePreds2$Dataset), labels = c("Low-error",
                                                                             "Intermediate-error",
                                                                             "High-error"))
 
-
+completePreds2$IPI <- ifelse(completePreds2$Routine %in% c("classic","informative"), "A", "B")
 
 library(ggthemr)
 ggthemr('light')
 ##Plots
 tdata <- completePreds2[completePreds2$D47 == 0.8,]
 tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
-p1 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
-  geom_point(position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=Tc-sd*1.96, 
-                    ymax=Tc+sd*1.96), 
+
+p1 <- 
+  ggplot(data=tdata, aes(x=Model, y=meanTemp, color=Model))+
+  geom_point(aes(lty=IPI), position=position_dodge(dist), size=2)+
+  geom_errorbar(aes(ymin=Temp_L, 
+                    ymax=Temp_H,
+                    lty= IPI), 
                 width=0.5,size=0.6,
-                position=position_dodge(dist)) +
+                position=position_dodge(dist)
+                ) +
   geom_hline(aes(yintercept=True.Temp), lty='dashed', color='black')+
   facet_grid(vars(Dataset),vars(factor(D47se))) + ylab("Temperature (°C)")+ xlab("Error in Δ47 (‰)")+ 
   scale_color_brewer(palette="Dark2") + guides(alpha='none', color='none')+ 
@@ -81,10 +102,11 @@ p1 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
 
 tdata <- completePreds2[completePreds2$D47 == 0.7,]
 tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
-p2 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
-  geom_point(position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=Tc-sd*1.96, 
-                    ymax=Tc+sd*1.96), 
+p2 <- ggplot(data=tdata, aes(x=Model, y=meanTemp, color=Model))+
+  geom_point(aes(lty=IPI),position=position_dodge(dist), size=2)+
+  geom_errorbar(aes(ymin=Temp_L, 
+                    ymax=Temp_H,
+                    lty= IPI), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)) +
   geom_hline(aes(yintercept=True.Temp), lty='dashed', color='black')+
@@ -114,10 +136,11 @@ p2 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
 tdata <- completePreds2[completePreds2$D47 == 0.6,]
 tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
 
-p3 <- ggplot(data=tdata, aes(x=Model, y=Tc, color=Model))+
-  geom_point(position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=Tc-sd*1.96, 
-                    ymax=Tc+sd*1.96), 
+p3 <- ggplot(data=tdata, aes(x=Model, y=meanTemp, color=Model))+
+  geom_point(aes(lty=IPI),position=position_dodge(dist), size=2)+
+  geom_errorbar(aes(ymin=Temp_L, 
+                    ymax=Temp_H,
+                    lty= IPI), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)) +
   geom_hline(aes(yintercept=True.Temp), lty='dashed', color='black')+
