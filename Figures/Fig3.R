@@ -1,4 +1,3 @@
-setwd("~/MEGA/Projects/2_BayClump_reviews/May2022/Figures")
 library(rio)
 library(data.table)
 library(ggplot2)
@@ -10,6 +9,45 @@ ggthemr('light')
 
 beta <- 0.0369
 alpha <- 0.268
+
+source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
+source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
+
+
+samples = 50
+ngenerationsBayes = 3000
+name = "S2"
+
+calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
+calData$D47error <- abs(calData$D47error)
+calData$TempError <- abs(calData$TempError)
+
+priors = "Informative"
+bayeslincals_informative <- fitClumpedRegressions(calibrationData = calData, 
+                                      priors = priors,
+                                      numSavedSteps = ngenerationsBayes,
+                                      samples = samples)
+priors = "Weak"
+
+bayeslincals_weak <- fitClumpedRegressions(calibrationData = calData, 
+                                      priors = priors,
+                                      numSavedSteps = ngenerationsBayes,
+                                      samples = samples)
+
+
+priors = "Uninformative"
+
+bayeslincals_Uninformative <- fitClumpedRegressions(calibrationData = calData, 
+                                           priors = priors,
+                                           numSavedSteps = ngenerationsBayes,
+                                           samples = samples)
+
+
+
+
+
+
+
 dirList <- list.dirs(".")[-1]
 dirList <- list.dirs()[grep("Fig3", list.dirs())]
 
