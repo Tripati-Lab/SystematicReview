@@ -45,14 +45,14 @@ nobsRepDataset$Dataset <- factor(nobsRepDataset$Dataset, levels = unique(nobsRep
 alpha = 0.268
 beta = 0.0369
 
-
+nobsRepDataset$type <- ifelse(nobsRepDataset$Model %in% c('B-SL', 'B-SL-E', 'B-LMM'), "Bayesian", "Frequentist")
 
 p1 <- 
   ggplot(nobsRepDataset, aes(x = alpha.mean, y = beta.mean, color = Model)) + 
-  geom_point()+ 
-  geom_errorbar(aes(ymin = beta.mean - beta.sd,ymax = beta.mean + beta.sd)) + 
-  geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd)) +
+  geom_errorbar(aes(ymin = beta.mean - beta.sd,ymax = beta.mean + beta.sd, lty= type), size = .6) + 
+  geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size =.6) +
   geom_point(aes(alpha, beta), color = "black") +
+  geom_point()+ 
   facet_grid(cols =  vars(Dataset)) +
   ylab(expression(beta))+ 
   xlab(expression(alpha))+ 
@@ -75,8 +75,10 @@ p1 <-
         legend.key.size = unit(7,"point"), 
         legend.title=element_blank())+ 
   theme(legend.position="bottom") +
-  guides(colour = guide_legend(nrow = 1))
+  guides(colour = guide_legend(nrow = 1))+ 
+  scale_color_brewer(palette = "Dark2")
 
+p1
 
 pdf(here::here("Figures","Plots","Fig2.pdf"), 14, 5)
 print(p1)
