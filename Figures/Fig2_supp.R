@@ -13,7 +13,7 @@ beta <- 0.0369
 alpha <- 0.268
 
 ds <- here::here("Analyses", "Results", "50_Obs")
-TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
+TargetOutputFiles<-list.files(ds, pattern = "Informative_ParameterEstimates", full.names = T)
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(
@@ -80,11 +80,11 @@ p1 <-
 
 p1
 
-pdf(here::here("Figures","Plots","Fig2.pdf"), 14, 5)
+pdf(here::here("Figures","Plots","Fig2_S1.pdf"), 14, 5)
 print(p1)
 dev.off()
 
-jpeg(here::here("Figures","Plots","Fig2.jpg"), 14, 5, units = "in", res=300)
+jpeg(here::here("Figures","Plots","Fig2_S1.jpg"), 14, 5, units = "in", res=300)
 print(p1)
 dev.off()
 
