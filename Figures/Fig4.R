@@ -15,7 +15,7 @@ alpha <- 0.268
 dsets <- lapply(c("10_Obs", "50_Obs", "500_Obs"), function(x){
 
 ds <- here::here("Analyses", "Results", x)
-TargetOutputFiles<-list.files(ds, pattern = "Informative_ParameterEstimates", full.names = T)
+TargetOutputFiles<-list.files(ds, pattern = "Uninformative_ParameterEstimates", full.names = T)
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(

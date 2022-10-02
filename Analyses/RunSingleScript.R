@@ -7,11 +7,11 @@ library(here)
 library(rstan)
 
 replicates = 100
-samples = NULL
-ngenerationsBayes = 3000
+samples = 50
+ngenerationsBayes = 5000
 multicore = FALSE
-priors = "Weak"
-name = "S1"
+priors = "Informative"
+name = "S2"
 init.values = FALSE
 
 RunSingleFullResults <- function(name="S3",
@@ -20,31 +20,26 @@ RunSingleFullResults <- function(name="S3",
                                  ngenerationsBayes, 
                                  priors){
 
-calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
+calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_",samples, ".csv")))
 recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template.csv")) 
 
 calData$D47error <- abs(calData$D47error)
 calData$TempError <- abs(calData$TempError)
 
-lmcals <- simulateLM_measured(calData, replicates = replicates, samples = samples)
-lminversecals <- simulateLM_inverseweights(calData, replicates = replicates, samples = samples)
-yorkcals <- simulateYork_measured(calData, replicates = replicates, samples = samples)
-demingcals <- simulateDeming(calData, replicates = replicates, samples = samples)
+lmcals <- simulateLM_measured(calData, replicates = replicates)
+lminversecals <- simulateLM_inverseweights(calData, replicates = replicates)
+yorkcals <- simulateYork_measured(calData, replicates = replicates)
+demingcals <- simulateDeming(calData, replicates = replicates)
 bayeslincals <- fitClumpedRegressions(calibrationData = calData, 
                                       priors = priors,
-                                      numSavedSteps = ngenerationsBayes,
-                                      samples = samples)
+                                      numSavedSteps = ngenerationsBayes)
 
 nonBayesianParamsComplete <- rbindlist(list("OLS" = lmcals,
                                             "WOLS" = lminversecals,
                                             "York" = yorkcals,
                                             "Deming" = demingcals),
                                        idcol = "Model")       
-     
-rbindlist(list("BLM1_fit" = summary(bayeslincals$BLM1_fit)$summary,
-"BLM1_fit_NoErrors" = summary(bayeslincals$BLM1_fit_NoErrors)$summary,
-"BLM3_fit" = summary(bayeslincals$BLM3_fit)$summary), idcol = )
-
+   
 Params <- rbind.data.frame(nonBayesianParamsComplete)
 ParamEstimates <- aggregate(. ~ Model, Params, function(x) c(mean = mean(x), sd = sd(x)) )
 ParamEstimates <- as.data.frame(as.matrix(ParamEstimates))
@@ -77,54 +72,41 @@ cbind.data.frame(
 )
 
 ParamEstimates <- rbind.data.frame(ParamEstimates, sumBayesian)
-
+ParamEstimates$alpha.mean <- as.numeric(ParamEstimates$alpha.mean)
+ParamEstimates$alpha.sd <- as.numeric(ParamEstimates$alpha.sd)
+ParamEstimates$beta.mean <- as.numeric(ParamEstimates$beta.mean)
+ParamEstimates$beta.sd <- as.numeric(ParamEstimates$beta.sd)
 
 ##Reconstructions
 lmrecClassic <-  predictTc(calData = calData,
                            recData = recData,
-                           obCal = lmcals,
-                           clumpedClassic = TRUE)
-lmrecSimple <-  predictTc(calData = calData,
-                           recData = recData,
-                           obCal = lmcals,
-                           clumpedClassic = FALSE)
+                           obCal = lmcals)
 
 lminverserecClassic <-  predictTc(calData = calData,
                                   recData = recData,
                                   obCal = lminversecals)
 
-
-lminverserecSimple <-  predictTc(calData = calData,
-                                  recData = recData,
-                                  obCal = lminversecals,
-                                 clumpedClassic = FALSE)
-
 yorkrecClassic <-  predictTc(calData = calData,
                              recData = recData,
                              obCal = yorkcals)
 
-yorkrecSimple <-  predictTc(calData = calData,
-                                 recData = recData,
-                                 obCal = yorkcals,
-                                 clumpedClassic = FALSE)
 
 demingrecClassic <-  predictTc(calData = calData,
                                recData = recData,
-                               obCal = demingcals ,
-                               clumpedClassic = TRUE)
-
-demingrecSimple <-  predictTc(calData = calData,
-                                   recData = recData,
-                                   obCal = demingcals ,
-                                   clumpedClassic = FALSE)
+                               obCal = demingcals)
 
 infTempBayesianBLM1 <- BayesianPredictions(calModel = bayeslincals$BLM1_fit,
-                    calData = calData,
-                    recData = recData)
+                                           recData = recData,
+                                           priors = priors)
 
 infTempBayesianBLM1_fit_NoErrors <- BayesianPredictions(calModel = bayeslincals$BLM1_fit_NoErrors,
-                                       calData = calData,
-                                       recData = recData)
+                                       recData = recData,
+                                       priors = priors)
+
+infTempBayesianBLM3 <- BayesianPredictions(calModel = bayeslincals$BLM3_fit,
+                                           recData = recData,
+                                           mixed = TRUE,
+                                           priors = priors)
 
 
 RecComplete <- rbindlist(list("OLS"=lmrecClassic,
@@ -132,28 +114,20 @@ RecComplete <- rbindlist(list("OLS"=lmrecClassic,
                               "Deming"=demingrecClassic,
                               "WOLS"=lminverserecClassic,
                               "BayesianBLM1" = infTempBayesianBLM1,
-                              "BayesianBLM1_NoErrors" =infTempBayesianBLM1
+                              "BayesianBLM1_NoErrors" =infTempBayesianBLM1_fit_NoErrors,
+                              'infTempBayesianBLM3'= infTempBayesianBLM3
                               ),
                          idcol = "Model", fill = TRUE)
 
 
-colnames(BayesianRecs)[3] <- "D47"
-
-colnames(RecComplete)[c(5,3)] <- c("sd","D47PredErr")
-
-RecComplete <- rbindlist(list(BayesianRecs, RecComplete), fill = TRUE)
-
-
 toRet <- list("ParameterEstimates"=ParamEstimates,
      "Reconstructions"=RecComplete,
-     "RawParams"=Params,
-     BayesianRecs,
-     bayeslincals
+     "RawParams"=Params
      )
 
-write.csv(ParamEstimates, here::here("Analyses","Results",paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_ParameterEstimates.csv")))
-write.csv(RecComplete, here::here("Analyses","Results", paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_Recs.csv" )))
-write.csv(Params, here::here("Analyses","Results",paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_ParamsFull.csv" )))
+write.csv(ParamEstimates, here::here("Analyses","Results",paste0(samples,"_Obs"),paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_ParameterEstimates.csv")))
+write.csv(RecComplete, here::here("Analyses","Results",paste0(samples,"_Obs"), paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_Recs.csv" )))
+write.csv(Params, here::here("Analyses","Results",paste0(samples,"_Obs"),paste0(name,"Replicates=", replicates,"Samples=",samples,priors ,"_ParamsFull.csv" )))
 
 return(toRet)
 }
@@ -163,19 +137,19 @@ return(toRet)
 a <- RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=50, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 b <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=50, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 c <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=50, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 ###Weak
@@ -183,20 +157,20 @@ c <-RunSingleFullResults(name="S3",
 a1 <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=50, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 b1 <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=50, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 
 c1 <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=50, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 
@@ -205,20 +179,20 @@ c1 <-RunSingleFullResults(name="S3",
 RunSingleFullResults(name="S1",
                           replicates=1000, 
                           samples=50, 
-                          ngenerationsBayes=50000, 
+                          ngenerationsBayes=3000, 
                           priors='Uninformative')
 
 RunSingleFullResults(name="S2",
                           replicates=1000, 
                           samples=50, 
-                          ngenerationsBayes=50000, 
+                          ngenerationsBayes=3000, 
                           priors='Uninformative')
 
 
 RunSingleFullResults(name="S3",
                           replicates=1000, 
                           samples=50, 
-                          ngenerationsBayes=50000, 
+                          ngenerationsBayes=3000, 
                           priors='Uninformative')
 
 
@@ -228,20 +202,20 @@ RunSingleFullResults(name="S3",
 d <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 e <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 
 f <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 
@@ -249,20 +223,20 @@ f <-RunSingleFullResults(name="S3",
 d1 <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples= 500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 e1 <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples= 500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 
 f1 <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples= 500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 
@@ -271,20 +245,20 @@ f1 <-RunSingleFullResults(name="S3",
 RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Uninformative')
 
 RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Uninformative')
 
 
 RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=500, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Uninformative')
 
 
@@ -294,20 +268,20 @@ RunSingleFullResults(name="S3",
 g <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 h <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 
 i <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Informative')
 
 
@@ -315,20 +289,20 @@ i <-RunSingleFullResults(name="S3",
 g1 <-RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples= 10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 h1 <-RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples= 10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 
 i1 <-RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples= 10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Weak')
 
 ###Uninformative
@@ -336,20 +310,20 @@ i1 <-RunSingleFullResults(name="S3",
 RunSingleFullResults(name="S1",
                      replicates=1000, 
                      samples=10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Uninformative')
 
 RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Uninformative')
 
 
 RunSingleFullResults(name="S3",
                      replicates=1000, 
                      samples=10, 
-                     ngenerationsBayes=50000, 
+                     ngenerationsBayes=3000, 
                      priors='Uninformative')
 
 

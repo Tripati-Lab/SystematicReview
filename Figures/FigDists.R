@@ -14,6 +14,7 @@ alpha <- 0.268
 
 ds <- here::here("Analyses", "Datasets")
 TargetOutputFiles<-list.files(ds, pattern = "Dataset_", full.names = T)
+TargetOutputFiles <- TargetOutputFiles[grep("50.csv", TargetOutputFiles)]
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(

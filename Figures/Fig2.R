@@ -13,7 +13,7 @@ beta <- 0.0369
 alpha <- 0.268
 
 ds <- here::here("Analyses", "Results", "50_Obs")
-TargetOutputFiles<-list.files(ds, pattern = "Informative_ParameterEstimates", full.names = T)
+TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
 datasets <- lapply(TargetOutputFiles, read.csv)
   
   full <- rbind.data.frame(
@@ -53,7 +53,7 @@ p1 <-
   geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size =.6) +
   geom_point(aes(alpha, beta), color = "black") +
   geom_point()+ 
-  facet_grid(cols =  vars(Dataset)) +
+  facet_wrap(~(Dataset), scales = "free") +
   ylab(expression(beta))+ 
   xlab(expression(alpha))+ 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),

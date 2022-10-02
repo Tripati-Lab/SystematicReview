@@ -7,18 +7,20 @@ library(ggthemr)
 source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
 ggthemr('light')
 
-ds <- list.files(here::here("Analyses", "Results", "Sun", "Petersen"), full.names = TRUE)
+ds <- list.files(here::here("Analyses", "Results", "Sun"), full.names = TRUE)
 datasets <- rio::import_list(ds)
 datasets <- rbindlist(datasets, idcol = "Model")
+colnames(datasets)[6] <- 'SE'
 
-datasets$SE <- c(datasets$`Up, 95% CI` - datasets$`LW, 95% CI`) / 3.92
 
 #write.csv(datasets, here::here("Figures", "OriginalSun.csv"))
 
 ds_sun <- read.csv(here::here("Figures", "OriginalSun.csv"), row.names = 1)
-
+colnames(ds_sun) <- colnames(datasets)
 
 fullDS <- rbindlist(list(datasets, ds_sun))
+
+
 fullDS$Sample <- ifelse(fullDS$`Δ47 (‰)` == 0.706, "~6.2 Ma", "0")
 fullDS$Temperature <- fullDS$`Temperature (°C)`
 

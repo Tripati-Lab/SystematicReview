@@ -20,7 +20,7 @@ samples = 50
 ngenerationsBayes = 3000
 name = "S2"
 
-calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name, ".csv")))
+calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_",samples, ".csv")))
 calData$D47error <- abs(calData$D47error)
 calData$TempError <- abs(calData$TempError)
 
@@ -52,8 +52,8 @@ save.image(here::here("Figures/WS_Fig3.RData"))
 load(here::here("Figures/WS_Fig3.RData"))
 
     #Priors
-    prior_weak <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*2 ), 
-                                      beta=rnorm(1000, 0.039,0.004*2 ))
+    prior_weak <- cbind.data.frame(alpha=rnorm(1000, 0.231,1), 
+                                      beta=rnorm(1000, 0.039,1 ))
     prior_informed <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*1 ), 
                                        beta=rnorm(1000, 0.039,0.004*1 ))
     prior_uninformed <- cbind.data.frame(alpha=rnorm(1000, 0.01,0.01 ), 
