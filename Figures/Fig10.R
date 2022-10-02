@@ -58,12 +58,12 @@ colnames(regs)[2] <- "Temperature"
 
 p1 <- 
   ggplot(data=regs) +
-  geom_ribbon(data=regs,aes(x=Temperature, y = D47_median_est, ymin = D47_ci_lower_est,
-                            ymax = D47_ci_upper_est, fill = material), fill = "grey",
-              alpha = 0.8)+
   geom_ribbon(data=Anderson[[1]],aes(x=x, y = median_est, ymin = ci_lower_est,
-                                     ymax = ci_upper_est), color=NA,
-              alpha = 0.8)+
+                                     ymax = ci_upper_est), color=NA, fill="darkblue",
+              alpha = 0.5)+
+  geom_ribbon(data=regs,aes(x=Temperature, y = D47_median_est, ymin = D47_ci_lower_est,
+                            ymax = D47_ci_upper_est), fill = "grey",
+              alpha = 0.5)+
   geom_line(data=regs,aes(x=Temperature, y = D47_median_est), color = ' black')+
   geom_line(data=Anderson[[1]],
             aes(x=x, y = median_est), color="red", lty="dashed")+
@@ -92,12 +92,12 @@ p1 <-
   ) + theme(text = element_text(size = 17))
 
 
-pdf(here::here("Figures","Plots",'Fig10.pdf'), 10, 5)
+pdf(here::here("Figures","Plots",'Fig10.pdf'), 15, 4)
 print(p1)
 dev.off()
 
 
-jpeg(here::here("Figures","Plots",'Fig10.jpg'), 15, 5, units = "in", res=300)
+jpeg(here::here("Figures","Plots",'Fig10.jpg'), 15, 4, units = "in", res=300)
 print(p1)
 dev.off()
 

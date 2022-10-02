@@ -29,20 +29,23 @@ Petersen <- RegressionSingleCI(data.frame(alpha=rnorm(1000, 0.258, 1.70E-05),
                                           beta=rnorm(1000, 0.0383, 1.70E-06)), 0.8,13.6)
 
 
+datasets <- datasets[datasets$Model  != "B-LMM",]
+
 colnames(datasets)[2] <- "Temperature"
 regs <- datasets
 
 p1 <- 
   ggplot(data=regs) +
+  geom_ribbon(data=Petersen[[1]],aes(x=x, y = median_est, ymin = ci_lower_est,
+                                     ymax = ci_upper_est), color=NA, fill = "darkblue",
+              alpha = 0.5)+
    geom_ribbon(data=regs,aes(x=Temperature, y = D47_median_est, ymin = D47_ci_lower_est,
                             ymax = D47_ci_upper_est), fill = "grey",
-              alpha = 0.8)+
+              alpha = 0.5)+
   geom_line(data=regs,aes(x=Temperature, y = D47_median_est), color= 'black')+
   geom_line(data=Petersen[[1]],
             aes(x=x, y = median_est), color="red", lty="dashed")+
-  geom_ribbon(data=Petersen[[1]],aes(x=x, y = median_est, ymin = ci_lower_est,
-                                     ymax = ci_upper_est), color=NA,
-              alpha = 0.8)+
+
   facet_grid(.~Model) +
   ylab(expression(Delta["47"]*" (‰)" ))+ 
   xlab(expression(paste(10^6, " / T"^2, "(Temperature in °K)")))+ 

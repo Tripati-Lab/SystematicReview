@@ -15,7 +15,7 @@ alpha <- 0.268
 dsets <- lapply(c("10_Obs", "50_Obs", "500_Obs"), function(x){
 
 ds <- here::here("Analyses", "Results", x)
-TargetOutputFiles<-list.files(ds, pattern = "Uninformative_ParameterEstimates", full.names = T)
+TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(
@@ -86,11 +86,11 @@ p1 <-
   scale_color_brewer(palette = "Dark2")
 
 
-pdf(here::here("Figures","Plots","Fig4.pdf"), 9, 12)
+pdf(here::here("Figures","Plots","Fig4.pdf"), 20, 12)
 print(p1)
 dev.off()
 
-jpeg(here::here("Figures","Plots","Fig4.jpg"), 10, 9, units = "in", res=300)
+jpeg(here::here("Figures","Plots","Fig4.jpg"), 20, 12, units = "in", res=300)
 print(p1)
 dev.off()
 
