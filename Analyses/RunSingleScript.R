@@ -1,10 +1,5 @@
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Predictions_Bayesian.R")
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Predictions_nonBayesian.R")
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
-
 library(here)
-library(rstan)
+library(bayclumpr)
 
 replicates = 100
 samples = 50
@@ -26,11 +21,11 @@ recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_t
 calData$D47error <- abs(calData$D47error)
 calData$TempError <- abs(calData$TempError)
 
-lmcals <- simulateLM_measured(calData, replicates = replicates)
-lminversecals <- simulateLM_inverseweights(calData, replicates = replicates)
-yorkcals <- simulateYork_measured(calData, replicates = replicates)
-demingcals <- simulateDeming(calData, replicates = replicates)
-bayeslincals <- fitClumpedRegressions(calibrationData = calData, 
+lmcals <- cal.ols(calData, replicates = replicates)
+lminversecals <- cal.wols(calData, replicates = replicates)
+yorkcals <- cal.york(calData, replicates = replicates)
+demingcals <- cal.deming(calData, replicates = replicates)
+bayeslincals <- cal.bayesian(calibrationData = calData, 
                                       priors = priors,
                                       numSavedSteps = ngenerationsBayes)
 
@@ -78,32 +73,32 @@ ParamEstimates$beta.mean <- as.numeric(ParamEstimates$beta.mean)
 ParamEstimates$beta.sd <- as.numeric(ParamEstimates$beta.sd)
 
 ##Reconstructions
-lmrecClassic <-  predictTc(calData = calData,
+lmrecClassic <-  rec.clumped(calData = calData,
                            recData = recData,
                            obCal = lmcals)
 
-lminverserecClassic <-  predictTc(calData = calData,
+lminverserecClassic <-  rec.clumped(calData = calData,
                                   recData = recData,
                                   obCal = lminversecals)
 
-yorkrecClassic <-  predictTc(calData = calData,
+yorkrecClassic <-  rec.clumped(calData = calData,
                              recData = recData,
                              obCal = yorkcals)
 
 
-demingrecClassic <-  predictTc(calData = calData,
+demingrecClassic <-  rec.clumped(calData = calData,
                                recData = recData,
                                obCal = demingcals)
 
-infTempBayesianBLM1 <- BayesianPredictions(calModel = bayeslincals$BLM1_fit,
+infTempBayesianBLM1 <- rec.bayesian(calModel = bayeslincals$BLM1_fit,
                                            recData = recData,
                                            priors = priors)
 
-infTempBayesianBLM1_fit_NoErrors <- BayesianPredictions(calModel = bayeslincals$BLM1_fit_NoErrors,
+infTempBayesianBLM1_fit_NoErrors <- rec.bayesian(calModel = bayeslincals$BLM1_fit_NoErrors,
                                        recData = recData,
                                        priors = priors)
 
-infTempBayesianBLM3 <- BayesianPredictions(calModel = bayeslincals$BLM3_fit,
+infTempBayesianBLM3 <- rec.bayesian(calModel = bayeslincals$BLM3_fit,
                                            recData = recData,
                                            mixed = TRUE,
                                            priors = priors)
