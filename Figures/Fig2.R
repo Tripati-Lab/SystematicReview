@@ -53,7 +53,7 @@ p1 <-
   geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size =.6) +
   geom_point(aes(alpha, beta), color = "black") +
   geom_point()+ 
-  facet_wrap(~(Dataset), scales = "free") +
+  facet_wrap(~(Dataset)) +
   ylab(expression(beta))+ 
   xlab(expression(alpha))+ 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
