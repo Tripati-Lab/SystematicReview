@@ -4,7 +4,6 @@ library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
 ggthemr('light')
 
 ds <- here::here("Analyses", "Results", "Anderson_Full")
@@ -49,7 +48,7 @@ datasets$material <- ifelse(is.na(datasets$material), "Full", datasets$material)
 
 
 
-Anderson <- RegressionSingleCI(data.frame(alpha=rnorm(1000, 0.154, 4.00E-03),
+Anderson <- bayclumpr::cal.ci(data.frame(alpha=rnorm(1000, 0.154, 4.00E-03),
                                           beta=rnorm(1000, 0.0391, 4.00E-04)), 
                                0.5,13.3)
 regs <- datasets

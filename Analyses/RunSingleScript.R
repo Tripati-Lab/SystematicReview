@@ -1,13 +1,7 @@
 library(here)
 library(bayclumpr)
-
-replicates = 100
-samples = 50
-ngenerationsBayes = 5000
-multicore = FALSE
-priors = "Informative"
-name = "S2"
-init.values = FALSE
+library(data.table)
+library(rstan)
 
 RunSingleFullResults <- function(name="S3",
                                  replicates, 
@@ -73,21 +67,17 @@ ParamEstimates$beta.mean <- as.numeric(ParamEstimates$beta.mean)
 ParamEstimates$beta.sd <- as.numeric(ParamEstimates$beta.sd)
 
 ##Reconstructions
-lmrecClassic <-  rec.clumped(calData = calData,
-                           recData = recData,
+lmrecClassic <-  rec.clumped(recData = recData,
                            obCal = lmcals)
 
-lminverserecClassic <-  rec.clumped(calData = calData,
-                                  recData = recData,
+lminverserecClassic <-  rec.clumped(recData = recData,
                                   obCal = lminversecals)
 
-yorkrecClassic <-  rec.clumped(calData = calData,
-                             recData = recData,
+yorkrecClassic <-  rec.clumped(recData = recData,
                              obCal = yorkcals)
 
 
-demingrecClassic <-  rec.clumped(calData = calData,
-                               recData = recData,
+demingrecClassic <-  rec.clumped(recData = recData,
                                obCal = demingcals)
 
 infTempBayesianBLM1 <- rec.bayesian(calModel = bayeslincals$BLM1_fit,

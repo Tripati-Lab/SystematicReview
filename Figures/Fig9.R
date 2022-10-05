@@ -4,7 +4,6 @@ library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
 ggthemr('light')
 
 ds <- here::here("Analyses", "Results", "Petersen")
@@ -25,7 +24,7 @@ datasets$Model <- factor(datasets$Model,
 )
 
 
-Petersen <- RegressionSingleCI(data.frame(alpha=rnorm(1000, 0.258, 1.70E-05),
+Petersen <- bayclumpr::cal.ci(data.frame(alpha=rnorm(1000, 0.258, 1.70E-05),
                                           beta=rnorm(1000, 0.0383, 1.70E-06)), 0.8,13.6)
 
 

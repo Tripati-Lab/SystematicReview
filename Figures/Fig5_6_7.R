@@ -56,8 +56,8 @@ tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
 p1 <- 
   ggplot(data=tdata, aes(x=Model, y=meanTemp, color=Model))+
   geom_point( position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=meanTemp-error*2, 
-                    ymax=meanTemp+error*2), 
+  geom_errorbar(aes(ymin=meanTemp-error, 
+                    ymax=meanTemp+error), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)
                 ) +
@@ -89,8 +89,8 @@ tdata <- completePreds2[completePreds2$D47 == 0.7,]
 tdata$alpVal <- 1#ifelse(tdata$within95, 1, 0.8)
 p2 <- ggplot(data=tdata, aes(x=Model, y=meanTemp, color=Model))+
   geom_point( position=position_dodge(dist), size=2)+
-  geom_errorbar(aes(ymin=meanTemp-error*2, 
-                    ymax=meanTemp+error*2), 
+  geom_errorbar(aes(ymin=meanTemp-error, 
+                    ymax=meanTemp+error), 
                 width=0.5,size=0.6,
                 position=position_dodge(dist)
   ) +

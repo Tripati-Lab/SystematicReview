@@ -4,13 +4,12 @@ library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
 ggthemr('light')
 
 ds <- list.files(here::here("Analyses", "Results", "Sun"), full.names = TRUE)
 datasets <- rio::import_list(ds)
 datasets <- rbindlist(datasets, idcol = "Model")
-colnames(datasets)[6] <- 'SE'
+colnames(datasets)[6] <- 'SD'
 
 
 #write.csv(datasets, here::here("Figures", "OriginalSun.csv"))
@@ -25,11 +24,7 @@ fullDS$Sample <- ifelse(fullDS$`Δ47 (‰)` == 0.706, "~6.2 Ma", "0")
 fullDS$Temperature <- fullDS$`Temperature (°C)`
 
 
-                                                              
-                                 
-                  
-
-
+fullDS <- fullDS[fullDS$Model != "Petersen et al. (2019)",]
 
 fullDS$Model <- factor(fullDS$Model,
                          levels = c("Bayesian linear model", "Bayesian linear model, errors", "Bayesian linear mixed model" , "Linear" , "Inverse linear", "Deming", "York" , "Henkes et al. (2013)" , "Tripati et al. (2015)", "Petersen et al. (2019)"   ) ,
@@ -38,7 +33,7 @@ fullDS$Model <- factor(fullDS$Model,
 )
 
 p1 <- ggplot(data=fullDS) +
-  geom_errorbar(aes(x=Model, ymin = Temperature-SE,ymax = Temperature+SE, color=factor(Sample)),
+  geom_errorbar(aes(x=Model, ymin = Temperature-SD,ymax = Temperature+SD, color=factor(Sample)),
                 position=position_dodge(width=0.9), width=0.5, size=.7)+
   geom_point(aes(y=Temperature, x=Model, color=factor(Sample)), position=position_dodge(width=0.9))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
