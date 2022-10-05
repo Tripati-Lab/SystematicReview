@@ -44,7 +44,7 @@ completePreds2$Dataset <- factor(completePreds2$Dataset, levels = unique(complet
                                                                             "Intermediate-error",
                                                                             "High-error"))
 
-completePreds2 <- completePreds2[completePreds2$Model != "B-LMM",]
+#completePreds2 <- completePreds2[completePreds2$Model != "B-LMM",]
 
 
 library(ggthemr)

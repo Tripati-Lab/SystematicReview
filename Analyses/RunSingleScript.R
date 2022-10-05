@@ -1,7 +1,13 @@
 library(here)
 library(bayclumpr)
-library(data.table)
-library(rstan)
+
+replicates = 100
+samples = 50
+ngenerationsBayes = 5000
+multicore = FALSE
+priors = "Informative"
+name = "S2"
+init.values = FALSE
 
 RunSingleFullResults <- function(name="S3",
                                  replicates, 
@@ -67,33 +73,37 @@ ParamEstimates$beta.mean <- as.numeric(ParamEstimates$beta.mean)
 ParamEstimates$beta.sd <- as.numeric(ParamEstimates$beta.sd)
 
 ##Reconstructions
-lmrecClassic <-  rec.clumped(recData = recData,
+lmrecClassic <-  rec.clumped(calData = calData,
+                           recData = recData,
                            obCal = lmcals)
 
-lminverserecClassic <-  rec.clumped(recData = recData,
+lminverserecClassic <-  rec.clumped(calData = calData,
+                                  recData = recData,
                                   obCal = lminversecals)
 
-yorkrecClassic <-  rec.clumped(recData = recData,
+yorkrecClassic <-  rec.clumped(calData = calData,
+                             recData = recData,
                              obCal = yorkcals)
 
 
-demingrecClassic <-  rec.clumped(recData = recData,
+demingrecClassic <-  rec.clumped(calData = calData,
+                               recData = recData,
                                obCal = demingcals)
 
 infTempBayesianBLM1 <- rec.bayesian(calModel = bayeslincals$BLM1_fit,
-                                           recData = recData,
-                                           priors = if(priors == 'Weak'){"Uninformative"}else{priors},
+                                    recData = recData,
+                                    priors = if(priors == 'Weak'){"Uninformative"}else{priors},
                                     postcalsamples = 500)
 
 infTempBayesianBLM1_fit_NoErrors <- rec.bayesian(calModel = bayeslincals$BLM1_fit_NoErrors,
-                                       recData = recData,
-                                       priors = if(priors == 'Weak'){"Uninformative"}else{priors},
-                                       postcalsamples = 500)
+                                                 recData = recData,
+                                                 priors = if(priors == 'Weak'){"Uninformative"}else{priors},
+                                                 postcalsamples = 500)
 
 infTempBayesianBLM3 <- rec.bayesian(calModel = bayeslincals$BLM3_fit,
-                                           recData = recData,
-                                           mixed = TRUE,
-                                           priors = if(priors == 'Weak'){"Uninformative"}else{priors},
+                                    recData = recData,
+                                    mixed = TRUE,
+                                    priors = if(priors == 'Weak'){"Uninformative"}else{priors},
                                     postcalsamples = 500)
 
 

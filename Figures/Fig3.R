@@ -10,6 +10,10 @@ ggthemr('light')
 beta <- 0.0369
 alpha <- 0.268
 
+source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
+source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
+
+
 if(!file.exists(here::here("Figures/WS_Fig3.RData"))){
 
 samples = 50
@@ -21,21 +25,24 @@ calData$D47error <- abs(calData$D47error)
 calData$TempError <- abs(calData$TempError)
 
 priors = "Informative"
-bayeslincals_informative <- cal.bayesian(calibrationData = calData, 
+bayeslincals_informative <- fitClumpedRegressions(calibrationData = calData, 
                                       priors = priors,
-                                      numSavedSteps = ngenerationsBayes)
+                                      numSavedSteps = ngenerationsBayes,
+                                      samples = samples)
 priors = "Weak"
 
-bayeslincals_weak <- cal.bayesian(calibrationData = calData, 
+bayeslincals_weak <- fitClumpedRegressions(calibrationData = calData, 
                                       priors = priors,
-                                      numSavedSteps = ngenerationsBayes)
+                                      numSavedSteps = ngenerationsBayes,
+                                      samples = samples)
 
 
 priors = "Uninformative"
 
-bayeslincals_Uninformative <- cal.bayesian(calibrationData = calData, 
+bayeslincals_Uninformative <- fitClumpedRegressions(calibrationData = calData, 
                                            priors = priors,
-                                           numSavedSteps = ngenerationsBayes)
+                                           numSavedSteps = ngenerationsBayes,
+                                           samples = samples)
 
 
 save.image(here::here("Figures/WS_Fig3.RData"))
