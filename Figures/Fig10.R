@@ -92,10 +92,56 @@ p1 <-
 
 
 
+
+p2 <- 
+  ggplot(data=regs) +
+  geom_ribbon(data=Anderson[[1]],aes(x=sqrt(10^6/x)-273.15, y = median_est, ymin = ci_lower_est,
+                                     ymax = ci_upper_est), color=NA, fill="darkblue",
+              alpha = 0.5)+
+  geom_ribbon(data=regs,aes(x=sqrt(10^6/Temperature)-273.15, y = D47_median_est, ymin = D47_ci_lower_est,
+                            ymax = D47_ci_upper_est), fill = "grey",
+              alpha = 0.5)+
+  geom_line(data=regs,aes(x=sqrt(10^6/Temperature)-273.15, y = D47_median_est), color = ' black')+
+  geom_line(data=Anderson[[1]],
+            aes(x=sqrt(10^6/x)-273.15, y = median_est), color="red", lty="dashed")+
+  
+  facet_grid(.~Model) +
+  ylab(expression(Delta["47"]*" (‰)" ))+ 
+  xlab(expression(paste("T", "(Temperature in °C)")))+ 
+  guides(color="none", fill='none')+ 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.title.x = element_text(colour = "black"),
+        axis.title.y = element_text(colour = "black"),
+        axis.text.y = element_text(colour="black"),
+        axis.text.x = element_text(colour="black"),
+        strip.text = element_text(colour = 'black'),
+        panel.border = element_rect(colour = "black", fill=NA),
+        axis.line.x.bottom=element_line(color="black", size=0.1),
+        axis.line.y.left=element_line(color="black", size=0.1),
+        text = element_text(size=15))+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5))+
+  theme(axis.text.x = element_text(colour="black"), 
+        axis.text.y = element_text(colour="black"))+ 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(colour = "black")
+  ) + theme(text = element_text(size = 17))
+
+
+
 ggsave(plot = p1, filename= here::here("Figures","Plots",'Fig10.pdf'), device= cairo_pdf, width =  15, height =  4)
 
 
 jpeg(here::here("Figures","Plots",'Fig10.jpg'), 15, 4, units = "in", res=300)
 print(p1)
 dev.off()
+
+ggsave(plot = p2, filename= here::here("Figures","Plots",'Fig10_NL.pdf'), device= cairo_pdf, width =  15, height =  4)
+
+
+jpeg(here::here("Figures","Plots",'Fig10_NL.jpg'), 15, 4, units = "in", res=300)
+print(p2)
+dev.off()
+
 
