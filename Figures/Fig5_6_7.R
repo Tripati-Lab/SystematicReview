@@ -152,26 +152,22 @@ p3 <- ggplot(data=tdata, aes(x=Model, y=meanTemp, color=Model))+
         axis.ticks = element_line(colour = "black")
   )
 
+ggsave(plot = p1, filename= here::here("Figures","Plots","Fig5.pdf"), device= cairo_pdf, width =  10, height =  8)
 
-pdf(here::here("Figures","Plots","Fig5.pdf"),10,8)
-print(p1)
-dev.off()
 
 jpeg(here::here("Figures","Plots","Fig5.jpg"), 10, 8, units = "in", res=300)
 print(p1)
 dev.off()
 
-pdf(here::here("Figures","Plots","Fig6.pdf"),10,8)
-print(p2)
-dev.off()
+ggsave(plot = p2, filename= here::here("Figures","Plots","Fig6.pdf"), device= cairo_pdf, width =  10, height =  8)
+
 
 jpeg(here::here("Figures","Plots","Fig6.jpg"), 10, 8, units = "in", res=300)
 print(p2)
 dev.off()
 
-pdf(here::here("Figures","Plots","Fig7.pdf"),10,8)
-print(p3)
-dev.off()
+ggsave(plot = p3, filename= here::here("Figures","Plots","Fig7.pdf"), device= cairo_pdf, width =  10, height =  8)
+
 
 jpeg(here::here("Figures","Plots","Fig7.jpg"), 10, 8, units = "in", res=300)
 print(p3)

@@ -54,9 +54,7 @@ p1 <- ggplot(data=fullDS) +
   )+ theme(text = element_text(size = 20))+ ylab("Temperature (°C)")
 
 
-pdf(here::here("Figures","Plots",'Fig11.pdf'), 10, 5)
-print(p1)
-dev.off()
+ggsave(plot = p1, filename= here::here("Figures","Plots",'Fig11.pdf'), device= cairo_pdf, width =  15, height =  5)
 
 jpeg(here::here("Figures","Plots",'Fig11.jpg'), 10, 5, units = "in", res=300)
 print(p1)
