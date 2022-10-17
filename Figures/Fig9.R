@@ -47,7 +47,7 @@ p1 <-
 
   facet_grid(.~Model) +
   ylab(expression(Delta["47"]*" (‰)" ))+ 
-  xlab(expression(paste(10^6, " / T"^2, "(Temperature in °K)")))+ 
+  xlab(expression(paste(10^6, " / T"^2, "(Temperature in K)")))+ 
   guides(color="none", fill='none')+ 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.title.x = element_text(colour = "black"),
