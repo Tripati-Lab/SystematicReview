@@ -4,19 +4,16 @@ library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
+library(bayclumpr)
 
 ggthemr('light')
 
 beta <- 0.0369
 alpha <- 0.268
 
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/Functions/Calibration_BayesianNonBayesian.R")
-source("https://raw.githubusercontent.com/Tripati-Lab/BayClump/dev/global.R")
-
 
 if(!file.exists(here::here("Figures/WS_Fig3.RData"))){
 
-samples = 50
 ngenerationsBayes = 3000
 name = "S2"
 
@@ -25,24 +22,22 @@ calData$D47error <- abs(calData$D47error)
 calData$TempError <- abs(calData$TempError)
 
 priors = "Informative"
-bayeslincals_informative <- fitClumpedRegressions(calibrationData = calData, 
-                                      priors = priors,
-                                      numSavedSteps = ngenerationsBayes,
-                                      samples = samples)
+bayeslincals_informative <- cal.bayesian(calibrationData = calData, 
+                             priors = priors,
+                             numSavedSteps = ngenerationsBayes)
+
 priors = "Weak"
 
-bayeslincals_weak <- fitClumpedRegressions(calibrationData = calData, 
-                                      priors = priors,
-                                      numSavedSteps = ngenerationsBayes,
-                                      samples = samples)
+bayeslincals_weak <- cal.bayesian(calibrationData = calData, 
+                                  priors = priors,
+                                  numSavedSteps = ngenerationsBayes)
 
 
 priors = "Uninformative"
 
-bayeslincals_Uninformative <- fitClumpedRegressions(calibrationData = calData, 
+bayeslincals_Uninformative <- cal.bayesian(calibrationData = calData, 
                                            priors = priors,
-                                           numSavedSteps = ngenerationsBayes,
-                                           samples = samples)
+                                           numSavedSteps = ngenerationsBayes)
 
 
 save.image(here::here("Figures/WS_Fig3.RData"))
@@ -56,21 +51,20 @@ load(here::here("Figures/WS_Fig3.RData"))
                                       beta=rnorm(1000, 0.039,1 ))
     prior_informed <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*1 ), 
                                        beta=rnorm(1000, 0.039,0.004*1 ))
-    prior_uninformed <- cbind.data.frame(alpha=rnorm(1000, 0.01,0.01 ), 
-                                      beta=rnorm(1000, 0.01,0.01 ))
-    
     prior_informed$Model <- "Prior"
     prior_weak$Model <- "Prior"
-    prior_uninformed$Model <- "prior prior_uninformed"
-    
+
     
     params_inf <- data.frame(rstan::extract(bayeslincals_informative$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
     params_weak <- data.frame(rstan::extract(bayeslincals_weak$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
+    params_uninf <- data.frame(rstan::extract(bayeslincals_Uninformative$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
     
   colnames(params_inf)
-  colnames(params_noninf)
+  colnames(params_weak)
+  colnames(params_uninf)
+  
   colnames(prior_informed)
-  colnames(prior_uninformed)
+  colnames(prior_weak)
   
     
    dataset <- rbindlist(list(Informed=params_inf,
@@ -79,11 +73,12 @@ load(here::here("Figures/WS_Fig3.RData"))
                              Weak=prior_weak
                              ), idcol = "Dist", fill= TRUE)
     
-    
+   dataset$Model <- factor(dataset$Model, levels = c("Prior", "Posterior"))
+   
    
 p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model))+
-     stat_density()+
-     facet_wrap(~Dist)+ 
+     stat_density(aes(y=..scaled..))+
+     facet_wrap(~Dist, scales = "free")+ 
      geom_vline(xintercept = 0.268, linetype="dashed", color='black') +
      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
            axis.title.x = element_text(colour = "black"),
@@ -111,9 +106,9 @@ p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model))+
 
 
 p2 <- ggplot(data = dataset, aes(x=beta, fill=Model))+
-  stat_density()+
-  facet_wrap(~Dist)+ 
-  geom_vline(xintercept = 0.0369, linetype="dashed", color='black')+
+  stat_density(aes(y=..scaled..), position = "identity")+
+  facet_wrap(~Dist, scales = "free")+ 
+  geom_vline(xintercept = 0.0369, linetype="dashed", color='black') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.title.x = element_text(colour = "black"),
         axis.title.y = element_text(colour = "black"),
