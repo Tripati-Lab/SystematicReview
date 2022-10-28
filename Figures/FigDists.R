@@ -58,12 +58,9 @@ p1 <-
   theme(legend.position="none")
 
 
-pdf(here::here("Figures","Plots","FigDist.pdf"), 10, 5)
-print(p1)
-dev.off()
-
 jpeg(here::here("Figures","Plots","FigDist.jpg"), 10, 5, units = "in", res=300)
 print(p1)
 dev.off()
 
+ggsave(plot = p1, filename= here::here("Figures","Plots",'FigDist.pdf'), device= cairo_pdf, width =  10, height =  5)
 

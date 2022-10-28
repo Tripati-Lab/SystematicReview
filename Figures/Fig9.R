@@ -69,9 +69,8 @@ p1 <-
   )+ theme(text = element_text(size = 17))
 
 
-pdf(here::here("Figures","Plots",'Fig9.pdf'), 15, 4)
-print(p1)
-dev.off()
+ggsave(plot = p1, filename= here::here("Figures","Plots",'Fig9.pdf'), device= cairo_pdf, width =  15, height =  4)
+
 
 jpeg(here::here("Figures","Plots","Fig9.jpg"), 15, 4, units = "in", res=300)
 print(p1)
