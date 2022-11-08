@@ -75,10 +75,9 @@ load(here::here("Figures/WS_Fig3.RData"))
     
    dataset$Model <- factor(dataset$Model, levels = c("Prior", "Posterior"))
    
-   
-p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model))+
-     stat_density(aes(y=..scaled..))+
-     facet_wrap(~Dist, scales = "free")+ 
+p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model, group = Model))+
+  stat_density(aes( y=..scaled..,color=Model), position="dodge", color = NA)+
+  facet_wrap(~Dist, scales = "free") + 
      geom_vline(xintercept = 0.268, linetype="dashed", color='black') +
      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
            axis.title.x = element_text(colour = "black"),
@@ -106,7 +105,7 @@ p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model))+
 
 
 p2 <- ggplot(data = dataset, aes(x=beta, fill=Model))+
-  stat_density(aes(y=..scaled..), position = "identity")+
+  stat_density(aes( y=..scaled..,color=Model), position="dodge", color = NA)+
   facet_wrap(~Dist, scales = "free")+ 
   geom_vline(xintercept = 0.0369, linetype="dashed", color='black') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
