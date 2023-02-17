@@ -1,5 +1,6 @@
 #calData <- read.csv(here::here("Analyses","Datasets","Dataset_S3_1000.csv"))
-
+#devtools::install_github("ncahill89/EIVmodels")
+library(EIVmodels)
 
 genDS <- function(error = "S1", nobs = 1000){
   set.seed(3)     
@@ -9,8 +10,8 @@ genDS <- function(error = "S1", nobs = 1000){
 AddD= 0.0025 #Bernasconi
 TrueD47= 0.0125 #Petersen
 TempErrC= 0.019
-
   }
+  
 if(error == 'S2'){
 #Intermediate
 AddD= 0.0075
@@ -25,26 +26,29 @@ TrueD47= 0.0275
 TempErrC= 0.155 
 }
 
-truex <- rnorm(nobs,12.02585352, 2.5)
-errx <- rnorm(nobs, 0, TempErrC)
-obsx <- truex + errx
+data <- sim_slr(n_sim = nobs,
+          alpha = 0.268,
+          beta = 0.0369,
+          y_err = TrueD47,
+          x_err = TempErrC)
 
-beta1 <- 0.268
-beta2 <- 0.0369
-sdy <- TrueD47
-sdobsy <- AddD
+#library(IsoplotR)
+#york(cbind(data$x,data$x_err,data$y,data$y_err))
+#lm(data$y~data$x)
 
-erry <- rnorm(nobs, 0, sdy)
-truey <- rnorm(nobs,beta1 + beta2*truex,sdobsy)
-obsy <- truey + erry
+#library(ggplot2)
+#ggplot(data = data,aes(x = x,y = y)) + 
+#  geom_point() + 
+#  geom_errorbar(aes(ymin = y-y_err,ymax = y+y_err)) + 
+#  geom_errorbarh(aes(xmin = x-x_err,xmax = x+x_err))
 
 ds <- cbind.data.frame(
-x_TRUE = truex,
-Temperature = obsx,
-TempError = errx,
-y_TRUE = truey,
-D47error = erry,
-D47 = obsy,
+x_TRUE = data$true_x,
+Temperature = data$x,
+TempError = data$x_err,
+y_TRUE = data$true_y,
+D47error = data$y_err,
+D47 = data$y,
 Material = 1)
 write.csv(ds, here::here("Analyses","Datasets",paste0("Dataset_",error,"_",nobs, ".csv")))
 ds
@@ -66,6 +70,7 @@ c3 <- genDS(error = "S3", nobs = 500)
 
 lm(a1$y_TRUE~a1$x_TRUE)
 lm(a1$D47~a1$Temperature)
+
 
 lm(a2$y_TRUE~a2$x_TRUE)
 lm(a2$D47~a2$Temperature)
