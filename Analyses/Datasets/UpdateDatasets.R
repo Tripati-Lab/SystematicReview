@@ -2,7 +2,7 @@
 #devtools::install_github("ncahill89/EIVmodels")
 library(EIVmodels)
 
-genDS <- function(error = "S1", nobs = 1000){
+genDS <- function(error = "S1", nobs = 1000, export = TRUE){
   set.seed(3)     
 
   if(error == 'S1'){
@@ -26,11 +26,14 @@ TrueD47= 0.0275
 TempErrC= 0.155 
 }
 
+
 data <- sim_slr(n_sim = nobs,
           alpha = 0.268,
           beta = 0.0369,
           y_err = TrueD47,
-          x_err = TempErrC)
+          x_err = TempErrC,
+          min_x = 5,
+          max_x = 19)
 
 #library(IsoplotR)
 #york(cbind(data$x,data$x_err,data$y,data$y_err))
@@ -51,7 +54,7 @@ D47error = data$y_err,
 D47 = data$y,
 Material = 1)
 write.csv(ds, here::here("Analyses","Datasets",paste0("Dataset_",error,"_",nobs, ".csv")))
-ds
+return(ds)
 }
 
 a1 <- genDS(error = "S1", nobs = 10)

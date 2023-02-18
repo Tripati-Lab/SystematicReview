@@ -12,9 +12,6 @@ RunSingleFullResults <- function(name="S3",
 calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_",samples, ".csv")))
 recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template.csv")) 
 
-calData$D47error <- abs(calData$D47error)
-calData$TempError <- abs(calData$TempError)
-
 lmcals <- cal.ols(calData, replicates = replicates)
 lminversecals <- cal.wols(calData, replicates = replicates)
 yorkcals <- cal.york(calData, replicates = replicates)
