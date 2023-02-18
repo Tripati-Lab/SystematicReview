@@ -60,16 +60,19 @@ return(ds)
 a1 <- genDS(error = "S1", nobs = 10)
 a2 <- genDS(error = "S1", nobs = 50)
 a3 <- genDS(error = "S1", nobs = 500)
+a4 <- genDS(error = "S1", nobs = 1000)
 
 
 b1 <- genDS(error = "S2", nobs = 10)
 b2 <- genDS(error = "S2", nobs = 50)
 b3 <- genDS(error = "S2", nobs = 500)
+b4 <- genDS(error = "S2", nobs = 1000)
 
 
 c1 <- genDS(error = "S3", nobs = 10)
 c2 <- genDS(error = "S3", nobs = 50)
 c3 <- genDS(error = "S3", nobs = 500)
+c4 <- genDS(error = "S3", nobs = 1000)
 
 lm(a1$y_TRUE~a1$x_TRUE)
 lm(a1$D47~a1$Temperature)
