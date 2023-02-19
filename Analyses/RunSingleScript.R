@@ -17,9 +17,13 @@ lminversecals <- cal.wols(calData, replicates = replicates, samples = samples)
 yorkcals <- cal.york(calData, replicates = replicates, samples = samples)
 demingcals <- cal.deming(calData, replicates = replicates, samples = samples)
 
-dataSub <- calData[sample(seq_along(calData[, 1]), samples, replace = TRUE), ]
 
-bayeslincals <- cal.bayesian(calibrationData = dataSub, 
+#calData$TempError <- abs(calData$TempError)
+#calData$D47error <- abs(calData$D47error)
+
+calData2 <- calData[sample(seq_along(calData[, 1]), samples, replace = TRUE), ]
+
+bayeslincals <- cal.bayesian(calibrationData = calData2, 
                                       priors = priors,
                                       numSavedSteps = ngenerationsBayes)
 
@@ -128,7 +132,7 @@ a <- RunSingleFullResults(name="S1",
                      ngenerationsBayes=3000, 
                      priors='Informative')
 
-b <-RunSingleFullResults(name="S2",
+b <- RunSingleFullResults(name="S2",
                      replicates=1000, 
                      samples=50, 
                      ngenerationsBayes=3000, 

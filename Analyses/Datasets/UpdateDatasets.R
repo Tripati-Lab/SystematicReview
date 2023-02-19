@@ -2,56 +2,69 @@
 #devtools::install_github("ncahill89/EIVmodels")
 library(EIVmodels)
 
-genDS <- function(error = "S1", nobs = 1000, export = TRUE){
+genDS <- function(error = "S3", nobs = 1000, export = TRUE){
   set.seed(3)     
 
-  if(error == 'S1'){
+if(error == 'S1'){
 #Low 
-AddD= 0.0025 #Bernasconi
-TrueD47= 0.0125 #Petersen
-TempErrC= 0.019
+AddD = 0.0025 #Bernasconi
+TrueD47 = 0.0125 #Petersen
+TempErrC = 0.019
   }
   
 if(error == 'S2'){
 #Intermediate
-AddD= 0.0075
-TrueD47= 0.0225
-TempErrC= 0.077
+AddD = 0.0075
+TrueD47 = 0.0225
+TempErrC = 0.077
 }
 
 if(error == 'S3'){
 #High
-AddD= 0.0125
-TrueD47= 0.0275
-TempErrC= 0.155 
+AddD = 0.0125
+TrueD47 = 0.0275
+TempErrC = 0.155 
 }
-
-
-data <- sim_slr(n_sim = nobs,
-          alpha = 0.268,
-          beta = 0.0369,
-          y_err = TrueD47,
-          x_err = TempErrC,
-          min_x = 5,
-          max_x = 19)
-
+  
+  
+  # simulate covariate data
+  n <- nobs
+  sdx <- 2
+  pop_taux <- 1 / (sdx * sdx)
+  sdobs <- TempErrC
+  taux <- 1 / (sdobs * sdobs)
+  truex <- rnorm(n, 12.2, sdx)
+  errorx <- rnorm(n, 0, sdobs)
+  obsx <- truex + errorx
+  
+  # simulate response data
+  alpha <- 0.268
+  beta <- 0.0369
+  
+  # process error
+  p_sdy <-  TrueD47
+  p_tauy <- 1 / (p_sdy * p_sdy)
+  p_errory <- rnorm(n, 0, p_sdy)
+  
+  # measurement error
+  obs_sdy <- AddD  
+  obs_tauy <- 1 / (obs_sdy * obs_sdy)
+  obs_errory <- rnorm(n,0,obs_sdy)
+  
+  truey <- alpha + beta*truex + p_errory
+  obsy <- truey + obs_errory
+  
 #library(IsoplotR)
-#york(cbind(data$x,data$x_err,data$y,data$y_err))
-#lm(data$y~data$x)
-
-#library(ggplot2)
-#ggplot(data = data,aes(x = x,y = y)) + 
-#  geom_point() + 
-#  geom_errorbar(aes(ymin = y-y_err,ymax = y+y_err)) + 
-#  geom_errorbarh(aes(xmin = x-x_err,xmax = x+x_err))
+#york(cbind(obsx,errorx,obsy,obs_errory))
+#lm(obsy~obsx)
 
 ds <- cbind.data.frame(
-x_TRUE = data$true_x,
-Temperature = data$x,
-TempError = data$x_err,
-y_TRUE = data$true_y,
-D47error = data$y_err,
-D47 = data$y,
+x_TRUE = truex,
+Temperature = obsx,
+TempError = errorx,
+y_TRUE = truey,
+D47error = obs_errory,
+D47 = obsy,
 Material = 1)
 write.csv(ds, here::here("Analyses","Datasets",paste0("Dataset_",error,"_",nobs, ".csv")))
 return(ds)
@@ -74,24 +87,19 @@ c2 <- genDS(error = "S3", nobs = 50)
 c3 <- genDS(error = "S3", nobs = 500)
 c4 <- genDS(error = "S3", nobs = 1000)
 
-lm(a1$y_TRUE~a1$x_TRUE)
-lm(a1$D47~a1$Temperature)
-
-
 lm(a2$y_TRUE~a2$x_TRUE)
-lm(a2$D47~a2$Temperature)
-
-lm(a3$y_TRUE~a3$x_TRUE)
-lm(a3$D47~a3$Temperature)
-
-
-
-lm(b1$y_TRUE~b1$x_TRUE)
-lm(b1$D47~b1$Temperature)
-
 lm(b2$y_TRUE~b2$x_TRUE)
-lm(b2$D47~b2$Temperature)
+lm(c2$y_TRUE~c2$x_TRUE)
 
-lm(b3$y_TRUE~b3$x_TRUE)
-lm(b3$D47~b3$Temperature)
+lm(a2$D47~a2$Temperature)
+lm(b2$D47~b2$Temperature)
+lm(c2$D47~c2$Temperature)
+
+
+library(IsoplotR)
+york(cbind(a2$Temperature,a2$TempError,a2$D47,a2$D47error))
+york(cbind(b2$Temperature,b2$TempError,b2$D47,b2$D47error))
+york(cbind(c2$Temperature,c2$TempError,c2$D47,c2$D47error))
+
+
 
