@@ -9,7 +9,7 @@ RunSingleFullResults <- function(name="S3",
                                  ngenerationsBayes, 
                                  priors){
 
-calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_1000", ".csv")))
+calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_",samples, ".csv")))
 recData <- read.csv(here::here("Analyses","Datasets", "BayClump_reconstruction_template.csv")) 
 
 lmcals <- cal.ols(calData, replicates = replicates, samples = samples)
@@ -18,12 +18,12 @@ yorkcals <- cal.york(calData, replicates = replicates, samples = samples)
 demingcals <- cal.deming(calData, replicates = replicates, samples = samples)
 
 
-#calData$TempError <- abs(calData$TempError)
-#calData$D47error <- abs(calData$D47error)
+calData$TempError <- abs(calData$TempError)
+calData$D47error <- abs(calData$D47error)
 
-calData2 <- calData[sample(seq_along(calData[, 1]), samples, replace = TRUE), ]
+#calData2 <- calData[sample(seq_along(calData[, 1]), samples, replace = TRUE), ]
 
-bayeslincals <- cal.bayesian(calibrationData = calData2, 
+bayeslincals <- cal.bayesian(calibrationData = calData, 
                                       priors = priors,
                                       numSavedSteps = ngenerationsBayes)
 
