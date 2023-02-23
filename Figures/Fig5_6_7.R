@@ -22,7 +22,7 @@ completePreds$Bayesian <- grepl("BLM", completePreds$Model)
   
 completePreds$Model2 <- completePreds$Model
 
-#write.csv(completePreds, here("Analyses", "Results", 'Complete.predictions.csv'))
+write.csv(completePreds,  here::here("Analyses", "Results", "50_Obs", "Complete.predictions.csv"))
 
 dist=0.5
 

@@ -47,6 +47,8 @@ beta = 0.0369
 
 nobsRepDataset$type <- ifelse(nobsRepDataset$Model %in% c('B-SL', 'B-SL-E', 'B-LMM'), "Bayesian", "Frequentist")
 
+write.csv(nobsRepDataset,  here::here("Analyses", "Results", "50_Obs", "Summary.csv"))
+
 p1 <- 
   ggplot(nobsRepDataset, aes(x = alpha.mean, y = beta.mean, color = Model)) + 
   geom_errorbar(aes(ymin = beta.mean - beta.sd,ymax = beta.mean + beta.sd, lty= type), size = .6) + 

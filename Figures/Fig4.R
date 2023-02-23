@@ -12,7 +12,7 @@ ggthemr('light')
 beta <- 0.0369
 alpha <- 0.268
 
-dsets <- lapply(c("10_Obs", "50_Obs", "500_Obs"), function(x){
+dsets <- lapply(c("50_Obs", "500_Obs"), function(x){
 
 ds <- here::here("Analyses", "Results", x)
 TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
@@ -46,7 +46,7 @@ nobsRepDataset$Dataset <- factor(nobsRepDataset$Dataset, levels = unique(nobsRep
 nobsRepDataset
 })
 
-names(dsets) <- c("n = 10", "n = 50", "n = 500")
+names(dsets) <- c("n = 50", "n = 500")
 
 dsets <- rbindlist(dsets, idcol = 'NObs')
 
@@ -86,11 +86,11 @@ p1 <-
   scale_color_brewer(palette = "Dark2")
 
 
-pdf(here::here("Figures","Plots","Fig4.pdf"), 20, 12)
+pdf(here::here("Figures","Plots","Fig4.pdf"), 10, 10)
 print(p1)
 dev.off()
 
-jpeg(here::here("Figures","Plots","Fig4.jpg"), 20, 12, units = "in", res=300)
+jpeg(here::here("Figures","Plots","Fig4.jpg"), 10, 10, units = "in", res=300)
 print(p1)
 dev.off()
 
