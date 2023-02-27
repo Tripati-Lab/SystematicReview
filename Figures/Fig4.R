@@ -12,7 +12,7 @@ ggthemr('light')
 beta <- 0.0369
 alpha <- 0.268
 
-dsets <- lapply(c("50_Obs", "500_Obs"), function(x){
+dsets <- lapply(c("10_Obs", "50_Obs", "500_Obs"), function(x){
 
 ds <- here::here("Analyses", "Results", x)
 TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
@@ -46,7 +46,7 @@ nobsRepDataset$Dataset <- factor(nobsRepDataset$Dataset, levels = unique(nobsRep
 nobsRepDataset
 })
 
-names(dsets) <- c("n = 50", "n = 500")
+names(dsets) <- c("n = 10", "n = 50", "n = 500")
 
 dsets <- rbindlist(dsets, idcol = 'NObs')
 
