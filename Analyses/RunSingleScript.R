@@ -84,17 +84,18 @@ yorkrecClassic <-  rec.clumped(recData = recData,
 demingrecClassic <-  rec.clumped(recData = recData,
                                obCal = demingcals)
 
-infTempBayesianBLM1 <- rec.bayesian.alt(calModel = bayeslincals$BLM1_fit,
+infTempBayesianBLM1 <- rec.bayesian(calModel = bayeslincals$BLM1_fit,
                                     recData = recData,
                                     priors = if(priors == 'Weak'){"Uninformative"}else{priors},
-                                    postcalsamples = 500)
+                                    postcalsamples = 500,
+                                    iter = ngenerationsBayes)
 
-infTempBayesianBLM1_fit_NoErrors <- rec.bayesian.alt(calModel = bayeslincals$BLM1_fit_NoErrors,
+infTempBayesianBLM1_fit_NoErrors <- rec.bayesian(calModel = bayeslincals$BLM1_fit_NoErrors,
                                                  recData = recData,
                                                  priors = if(priors == 'Weak'){"Uninformative"}else{priors},
                                                  postcalsamples = 500)
 
-infTempBayesianBLM3 <- rec.bayesian.alt(calModel = bayeslincals$BLM3_fit,
+infTempBayesianBLM3 <- rec.bayesian(calModel = bayeslincals$BLM3_fit,
                                     recData = recData,
                                     mixed = TRUE,
                                     priors = if(priors == 'Weak'){"Uninformative"}else{priors},
@@ -123,6 +124,48 @@ write.csv(Params, here::here("Analyses","Results",paste0(samples,"_Obs"),paste0(
 
 return(toRet)
 }
+
+
+##10
+###Informative
+RunSingleFullResults(name="S1",
+                     replicates=1000, 
+                     samples=10, 
+                     ngenerationsBayes=3000, 
+                     priors='Informative')
+
+RunSingleFullResults(name="S2",
+                     replicates=1000, 
+                     samples=10, 
+                     ngenerationsBayes=3000, 
+                     priors='Informative')
+
+RunSingleFullResults(name="S3",
+                     replicates=1000, 
+                     samples=10, 
+                     ngenerationsBayes=3000, 
+                     priors='Informative')
+
+###Weak
+
+RunSingleFullResults(name="S1",
+                     replicates=1000, 
+                     samples=10, 
+                     ngenerationsBayes=3000, 
+                     priors='Weak')
+
+RunSingleFullResults(name="S2",
+                     replicates=1000, 
+                     samples=10, 
+                     ngenerationsBayes=3000, 
+                     priors='Weak')
+
+
+RunSingleFullResults(name="S3",
+                     replicates=1000, 
+                     samples=10, 
+                     ngenerationsBayes=3000, 
+                     priors='Weak')
 
 ##50
 ###Informative
