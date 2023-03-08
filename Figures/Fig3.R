@@ -16,6 +16,7 @@ if(!file.exists(here::here("Figures/WS_Fig3.RData"))){
 
 ngenerationsBayes = 3000
 name = "S2"
+samples = 50
 
 calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_",samples, ".csv")))
 calData$D47error <- abs(calData$D47error)
