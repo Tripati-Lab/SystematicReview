@@ -1,4 +1,4 @@
-# BayesPaper
+# Systematic review of models used for Clumped Isotope Thermometry
 
 We include the basic scripts that were used to generate the results and figures in [Roman-Palacios et al.] (https://www.essoar.org/doi/10.1002/essoar.10507995.1). This repo has the following structure:
 
