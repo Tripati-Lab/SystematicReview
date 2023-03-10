@@ -12,8 +12,10 @@ ggthemr('light')
 beta <- 0.0369
 alpha <- 0.268
 
-ds <- here::here("Analyses", "Results", "50_Obs")
-TargetOutputFiles<-list.files(ds, pattern = "Informative_ParameterEstimates", full.names = T)
+dsets <- lapply(c("10_Obs", "50_Obs", "500_Obs"), function(x){
+
+ds <- here::here("Analyses", "Results", x)
+TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(
@@ -41,19 +43,23 @@ nobsRepDataset$Model <- factor(nobsRepDataset$Model,
 nobsRepDataset$Dataset <- factor(nobsRepDataset$Dataset, levels = unique(nobsRepDataset$Dataset), labels = c("Low-error",
                                                                                                              "Intermediate-error",
                                                                                                              "High-error"))
+nobsRepDataset
+})
 
-alpha = 0.268
-beta = 0.0369
+names(dsets) <- c("n = 10", "n = 50", "n = 500")
 
-nobsRepDataset$type <- ifelse(nobsRepDataset$Model %in% c('B-SL', 'B-SL-E', 'B-LMM'), "Bayesian", "Frequentist")
+dsets <- rbindlist(dsets, idcol = 'NObs')
+
+dsets$type <- ifelse(dsets$Model %in% c('B-SL', 'B-SL-E', 'B-LMM'), "Bayesian", "Frequentist")
 
 p1 <- 
-  ggplot(nobsRepDataset, aes(x = alpha.mean, y = beta.mean, color = Model)) + 
+  ggplot(dsets, aes(x = alpha.mean, y = beta.mean, color = Model)) + 
   geom_errorbar(aes(ymin = beta.mean - beta.sd,ymax = beta.mean + beta.sd, lty= type), size = .6) + 
-  geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size =.6) +
-  geom_point(aes(alpha, beta), color = "black") +
+  geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size = .6) +
   geom_point()+ 
-  facet_wrap(~(Dataset), scales = "free") +
+  geom_point(aes(alpha, beta), color = "black") +
+  facet_grid(cols =  vars(NObs), 
+             rows = vars(Dataset)) +
   ylab(expression(beta))+ 
   xlab(expression(alpha))+ 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -74,17 +80,17 @@ p1 <-
         legend.text=element_text(color="black",size=15),
         legend.key.size = unit(7,"point"), 
         legend.title=element_blank())+ 
+  #scale_fill_continuous(guide = guide_legend()) +
   theme(legend.position="bottom") +
   guides(colour = guide_legend(nrow = 1))+ 
   scale_color_brewer(palette = "Dark2")
 
-p1
 
-pdf(here::here("Figures","Plots","Fig2_S1.pdf"), 14, 5)
+pdf(here::here("Figures","Plots","Fig5.pdf"), 10, 10)
 print(p1)
 dev.off()
 
-jpeg(here::here("Figures","Plots","Fig2_S1.jpg"), 14, 5, units = "in", res=300)
+jpeg(here::here("Figures","Plots","Fig5.jpg"), 10, 10, units = "in", res=300)
 print(p1)
 dev.off()
 

@@ -12,8 +12,9 @@ ggthemr('light')
 beta <- 0.0369
 alpha <- 0.268
 
-ds <- here::here("Analyses", "Results", "50_Obs")
-TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
+ds <- here::here("Analyses", "Datasets")
+TargetOutputFiles<-list.files(ds, pattern = "Dataset_", full.names = T)
+TargetOutputFiles <- TargetOutputFiles[grep("50.csv", TargetOutputFiles)]
 datasets <- lapply(TargetOutputFiles, read.csv)
 
 full <- rbind.data.frame(
@@ -22,42 +23,24 @@ full <- rbind.data.frame(
   cbind.data.frame(Dataset='S3', datasets[[3]])
 )
 
-nobsRepDataset <-  full
 
-
-
-nobsRepDataset$Model <- factor(nobsRepDataset$Model,
-                               levels = c("BLM1_fit_NoErrors", 
-                                          "BLM1_fit",
-                                          "BLM3_fit",
-                                          "OLS",
-                                          "WOLS",
-                                          "Deming", 
-                                          "York") ,
-                               labels = 
-                                 c("B-SL", "B-SL-E", "B-LMM", "OLS", "W-OLS", "D", "Y")
-)
-
-nobsRepDataset$Dataset <- factor(nobsRepDataset$Dataset, levels = unique(nobsRepDataset$Dataset), labels = c("Low-error",
+full$Dataset <- factor(full$Dataset, levels = unique(full$Dataset), labels = c("Low-error",
                                                                                                              "Intermediate-error",
                                                                                                              "High-error"))
 
-alpha = 0.268
-beta = 0.0369
 
-nobsRepDataset$type <- ifelse(nobsRepDataset$Model %in% c('B-SL', 'B-SL-E', 'B-LMM'), "Bayesian", "Frequentist")
 
-write.csv(nobsRepDataset,  here::here("Analyses", "Results", "50_Obs", "Summary.csv"))
 
 p1 <- 
-  ggplot(nobsRepDataset, aes(x = alpha.mean, y = beta.mean, color = Model)) + 
-  geom_errorbar(aes(ymin = beta.mean - beta.sd,ymax = beta.mean + beta.sd, lty= type), size = .6) + 
-  geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size =.6) +
-  geom_point(aes(alpha, beta), color = "black") +
+  ggplot(full, aes(x = Temperature, y = D47, color= Dataset)) + 
   geom_point()+ 
-  facet_wrap(~(Dataset)) +
-  ylab(expression(beta))+ 
-  xlab(expression(alpha))+ 
+  geom_errorbarh(aes(xmin = Temperature - TempError,xmax = Temperature + TempError)) + 
+  geom_errorbar(aes(ymin = D47 - D47error,ymax = D47 + D47error)) +
+    geom_abline(slope = beta, 
+                intercept = alpha, col='black')+
+  facet_grid(cols = vars(Dataset)) +
+    ylab(expression(Delta["47"]*" (‰)" ))+ 
+    xlab(expression(paste(10^6, " / T"^2, "(Temperature in °K)")))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), #axis.line = element_line(colour = "black"),
         axis.ticks = element_line(colour = "black"),
@@ -71,24 +54,13 @@ p1 <-
         strip.text = element_text(colour = 'black'),
         panel.border = element_rect(colour = "black", fill=NA),
         axis.line.x.bottom=element_line(color="black", size=0.1),
-        axis.line.y.left=element_line(color="black", size=0.1),
-        legend.key = element_rect(fill = "white"),
-        legend.text=element_text(color="black",size=15),
-        legend.key.size = unit(7,"point"), 
-        legend.title=element_blank())+ 
-  theme(legend.position="bottom") +
-  guides(colour = guide_legend(nrow = 1))+ 
-  scale_color_brewer(palette = "Dark2")
+        axis.line.y.left=element_line(color="black", size=0.1))+
+  theme(legend.position="none")
 
-p1
 
-pdf(here::here("Figures","Plots","Fig2.pdf"), 14, 5)
+jpeg(here::here("Figures","Plots","Fig2.jpg"), 10, 5, units = "in", res=300)
 print(p1)
 dev.off()
 
-jpeg(here::here("Figures","Plots","Fig2.jpg"), 14, 5, units = "in", res=300)
-print(p1)
-dev.off()
-
-
+ggsave(plot = p1, filename= here::here("Figures","Plots",'Fig2.pdf'), device= cairo_pdf, width =  10, height =  5)
 

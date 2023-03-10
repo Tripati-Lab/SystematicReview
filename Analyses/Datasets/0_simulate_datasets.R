@@ -1,6 +1,4 @@
-#calData <- read.csv(here::here("Analyses","Datasets","Dataset_S3_1000.csv"))
-#devtools::install_github("ncahill89/EIVmodels")
-library(EIVmodels)
+## Function to simulate the datasets
 
 genDS <- function(error = "S3", nobs = 1000, export = TRUE){
   set.seed(3)     
@@ -70,6 +68,9 @@ write.csv(ds, here::here("Analyses","Datasets",paste0("Dataset_",error,"_",nobs,
 return(ds)
 }
 
+
+## Simulating the datasets
+
 a1 <- genDS(error = "S1", nobs = 10)
 a2 <- genDS(error = "S1", nobs = 50)
 a3 <- genDS(error = "S1", nobs = 500)
@@ -86,20 +87,4 @@ c1 <- genDS(error = "S3", nobs = 10)
 c2 <- genDS(error = "S3", nobs = 50)
 c3 <- genDS(error = "S3", nobs = 500)
 c4 <- genDS(error = "S3", nobs = 1000)
-
-lm(a2$y_TRUE~a2$x_TRUE)
-lm(b2$y_TRUE~b2$x_TRUE)
-lm(c2$y_TRUE~c2$x_TRUE)
-
-lm(a2$D47~a2$Temperature)
-lm(b2$D47~b2$Temperature)
-lm(c2$D47~c2$Temperature)
-
-
-library(IsoplotR)
-york(cbind(a2$Temperature,a2$TempError,a2$D47,a2$D47error))
-york(cbind(b2$Temperature,b2$TempError,b2$D47,b2$D47error))
-york(cbind(c2$Temperature,c2$TempError,c2$D47,c2$D47error))
-
-
 

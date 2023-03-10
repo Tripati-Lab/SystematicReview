@@ -1,72 +1,114 @@
-library(here)
 library(rio)
 library(data.table)
 library(ggplot2)
 library(ggpubr)
 library(lemon)
 library(ggthemr)
-library(dplyr)
+library(bayclumpr)
 
 ggthemr('light')
 
 beta <- 0.0369
 alpha <- 0.268
 
-dsets <- lapply(c("10_Obs", "50_Obs", "500_Obs"), function(x){
 
-ds <- here::here("Analyses", "Results", x)
-TargetOutputFiles<-list.files(ds, pattern = "Weak_ParameterEstimates", full.names = T)
-datasets <- lapply(TargetOutputFiles, read.csv)
+if(!file.exists(here::here("Figures/WS_prior.RData"))){
 
-full <- rbind.data.frame(
-  cbind.data.frame(Dataset='S1', datasets[[1]]),
-  cbind.data.frame(Dataset='S2', datasets[[2]]),
-  cbind.data.frame(Dataset='S3', datasets[[3]])
-)
+ngenerationsBayes = 3000
+name = "S2"
+samples = 50
 
-nobsRepDataset <-  full
+calData <- read.csv(here::here("Analyses","Datasets", paste0("Dataset_",name,"_",samples, ".csv")))
+calData$D47error <- abs(calData$D47error)
+calData$TempError <- abs(calData$TempError)
+
+priors = "Informative"
+bayeslincals_informative <- cal.bayesian(calibrationData = calData, 
+                             priors = priors,
+                             numSavedSteps = ngenerationsBayes)
+
+priors = "Weak"
+
+bayeslincals_weak <- cal.bayesian(calibrationData = calData, 
+                                  priors = priors,
+                                  numSavedSteps = ngenerationsBayes)
 
 
+priors = "Uninformative"
 
-nobsRepDataset$Model <- factor(nobsRepDataset$Model,
-                               levels = c("BLM1_fit_NoErrors", 
-                                          "BLM1_fit",
-                                          "BLM3_fit",
-                                          "OLS",
-                                          "WOLS",
-                                          "Deming", 
-                                          "York") ,
-                               labels = 
-                                 c("B-SL", "B-SL-E", "B-LMM", "OLS", "W-OLS", "D", "Y")
-)
+bayeslincals_Uninformative <- cal.bayesian(calibrationData = calData, 
+                                           priors = priors,
+                                           numSavedSteps = ngenerationsBayes)
 
-nobsRepDataset$Dataset <- factor(nobsRepDataset$Dataset, levels = unique(nobsRepDataset$Dataset), labels = c("Low-error",
-                                                                                                             "Intermediate-error",
-                                                                                                             "High-error"))
-nobsRepDataset
-})
 
-names(dsets) <- c("n = 10", "n = 50", "n = 500")
+save.image(here::here("Figures/WS_prior.RData"))
 
-dsets <- rbindlist(dsets, idcol = 'NObs')
+}
 
-dsets$type <- ifelse(dsets$Model %in% c('B-SL', 'B-SL-E', 'B-LMM'), "Bayesian", "Frequentist")
+load(here::here("Figures/WS_prior.RData"))
 
-p1 <- 
-  ggplot(dsets, aes(x = alpha.mean, y = beta.mean, color = Model)) + 
-  geom_errorbar(aes(ymin = beta.mean - beta.sd,ymax = beta.mean + beta.sd, lty= type), size = .6) + 
-  geom_errorbarh(aes(xmin = alpha.mean - alpha.sd,xmax = alpha.mean + alpha.sd, lty= type), size = .6) +
-  geom_point()+ 
-  geom_point(aes(alpha, beta), color = "black") +
-  facet_grid(cols =  vars(NObs), 
-             rows = vars(Dataset)) +
-  ylab(expression(beta))+ 
-  xlab(expression(alpha))+ 
+    #Priors
+    prior_weak <- cbind.data.frame(alpha=rnorm(1000, 0.231,1), 
+                                      beta=rnorm(1000, 0.039,1 ))
+    prior_informed <- cbind.data.frame(alpha=rnorm(1000, 0.231,0.065*1 ), 
+                                       beta=rnorm(1000, 0.039,0.004*1 ))
+    prior_informed$Model <- "Prior"
+    prior_weak$Model <- "Prior"
+
+    
+    params_inf <- data.frame(rstan::extract(bayeslincals_informative$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
+    params_weak <- data.frame(rstan::extract(bayeslincals_weak$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
+    params_uninf <- data.frame(rstan::extract(bayeslincals_Uninformative$BLM1_fit, c('beta', 'alpha')), Model = "Posterior")
+    
+  colnames(params_inf)
+  colnames(params_weak)
+  colnames(params_uninf)
+  
+  colnames(prior_informed)
+  colnames(prior_weak)
+  
+    
+   dataset <- rbindlist(list(Informed=params_inf,
+                             Weak=params_weak,
+                             Informed=prior_informed,
+                             Weak=prior_weak
+                             ), idcol = "Dist", fill= TRUE)
+    
+   dataset$Model <- factor(dataset$Model, levels = c("Prior", "Posterior"))
+   
+p1 <- ggplot(data = dataset, aes(x=alpha, fill=Model, group = Model))+
+  stat_density(aes( y=..scaled..,color=Model), position="dodge", color = NA)+
+  facet_wrap(~Dist, scales = "free") + 
+     geom_vline(xintercept = 0.268, linetype="dashed", color='black') +
+     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+           axis.title.x = element_text(colour = "black"),
+           axis.title.y = element_text(colour = "black"),
+           axis.text.y = element_text(colour="black"),
+           axis.text.x = element_text(colour="black"),
+           strip.text = element_text(colour = 'black'),
+           panel.border = element_rect(colour = "black", fill=NA),
+           axis.line.x.bottom=element_line(color="black", size=0.1),
+           axis.line.y.left=element_line(color="black", size=0.1),
+           text = element_text(size=15))+
+     scale_y_continuous(breaks = scales::pretty_breaks(n = 10),
+                        expand = c(0, 0))+ 
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5),
+                     expand = c(0, 0))+
+     labs(fill = "") + xlab("Intercept")+  ylab("")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), #axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "black"),
-        panel.border = element_rect(color = "black", fill = NA, size = 1)
-  )+ theme(text = element_text(size = 22))  +
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(colour = "black")
+  ) + theme(text = element_text(size = 22),
+            legend.text=element_text(color="black",size=15),
+            legend.title=element_blank())  +
+  theme(legend.position="bottom")
+   
+
+
+p2 <- ggplot(data = dataset, aes(x=beta, fill=Model))+
+  stat_density(aes( y=..scaled..,color=Model), position="dodge", color = NA)+
+  facet_wrap(~Dist, scales = "free")+ 
+  geom_vline(xintercept = 0.0369, linetype="dashed", color='black') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.title.x = element_text(colour = "black"),
         axis.title.y = element_text(colour = "black"),
@@ -76,23 +118,27 @@ p1 <-
         panel.border = element_rect(colour = "black", fill=NA),
         axis.line.x.bottom=element_line(color="black", size=0.1),
         axis.line.y.left=element_line(color="black", size=0.1),
-        legend.key = element_rect(fill = "white"),
-        legend.text=element_text(color="black",size=15),
-        legend.key.size = unit(7,"point"), 
-        legend.title=element_blank())+ 
-  #scale_fill_continuous(guide = guide_legend()) +
-  theme(legend.position="bottom") +
-  guides(colour = guide_legend(nrow = 1))+ 
-  scale_color_brewer(palette = "Dark2")
+        text = element_text(size=15))+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10),
+                     expand = c(0, 0))+ 
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 4),
+                     expand = c(0, 0))+
+  labs(fill = "") + xlab("Slope")+ ylab("")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(colour = "black")
+  )  + theme(text = element_text(size = 22),
+             legend.text=element_text(color="black",size=15),
+             legend.title=element_blank())  +
+  theme(legend.position="bottom") 
 
+completePlot <- ggarrange(p1, p2)
 
-pdf(here::here("Figures","Plots","Fig4.pdf"), 10, 10)
-print(p1)
+pdf(here::here("Figures","Plots","Fig4.pdf"), 20, 5)
+print(completePlot)
 dev.off()
 
-jpeg(here::here("Figures","Plots","Fig4.jpg"), 10, 10, units = "in", res=300)
-print(p1)
+jpeg(here::here("Figures","Plots","Fig4.jpg"), 20, 5, units = "in", res=300)
+print(completePlot)
 dev.off()
-
-
 
