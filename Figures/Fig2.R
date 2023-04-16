@@ -27,7 +27,7 @@ full <- rbind.data.frame(
 full$Dataset <- factor(full$Dataset, levels = unique(full$Dataset), labels = c("Low-error",
                                                                                                              "Intermediate-error",
                                                                                                              "High-error"))
-
+full <- full[!full$Temperature > 13.4,]
 
 
 
